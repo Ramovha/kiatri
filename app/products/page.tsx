@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import TierGrid from '@/components/TierGrid';
 import { voipPlans, pbxTiers, trunkPlans, callCenterFeatures } from '@/lib/products';
 import { CheckIcon } from '@/components/icons';
@@ -17,7 +18,9 @@ export default function ProductsPage() {
           <h1 className="text-3xl font-bold text-navy-900 md:text-4xl">Products</h1>
           <p className="mt-3 max-w-2xl text-navy-700">
             Everything below is priced and ordered separately, then works together — pick a Cloud PBX tier for
-            seats, a SIP trunk for calling capacity, and layer on call center features as you grow.
+            seats, a SIP trunk for calling capacity, and layer on call center features as you grow. Every
+            tier includes a number — get a new one or{' '}
+            <Link href="/numbers" className="font-medium text-ember-600 hover:text-ember-500">port your existing number in</Link>.
           </p>
         </div>
       </div>

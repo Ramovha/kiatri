@@ -8,6 +8,7 @@ const COLUMNS = [
       { href: '/products#trunks', label: 'SIP Trunks' },
       { href: '/products#call-center', label: 'Call Center' },
       { href: '/pricing', label: 'Pricing' },
+      { href: '/numbers', label: 'Numbers & Porting' },
     ],
   },
   {
@@ -21,6 +22,8 @@ const COLUMNS = [
     title: 'Company',
     links: [
       { href: '/about', label: 'About & Trust' },
+      { href: '/security', label: 'Security & Compliance' },
+      { href: '/faq', label: 'FAQ' },
       { href: '/contact', label: 'Contact & Support' },
     ],
   },
@@ -66,7 +69,7 @@ export default function Footer() {
           ))}
         </div>
         <div className="mt-12 flex flex-col gap-2 border-t border-white/10 pt-6 text-xs text-navy-400 md:flex-row md:items-center md:justify-between">
-          <p>© {new Date().getFullYear()} Kiatri. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Kiatri (Pty) Ltd. All rights reserved.</p>
           <p>Billing &amp; account management via calling.kiatri.com</p>
         </div>
       </div>

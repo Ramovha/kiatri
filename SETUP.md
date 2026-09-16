@@ -3,6 +3,17 @@
 This is a static marketing site. Everything below needs your attention before
 this goes live for real customers.
 
+## 0. Confirm the real domain (required)
+
+`lib/site.ts` currently sets `SITE_URL = 'https://kiatri.com'`, matching the
+brand name given in the original brief — but this client folder is named
+`kiatri.co.za`, and earlier drafts of the Contact page used a `.co.za`
+address. **Confirm which domain is actually correct** and update `SITE_URL`
+in `lib/site.ts` if needed — it feeds the sitemap (`app/sitemap.ts`), the
+Open Graph/canonical metadata (`app/layout.tsx`), and the support email
+shown on the Contact page (`SUPPORT_EMAIL`, derived from `SITE_URL` so the
+two can't drift out of sync again).
+
 ## 1. Replace WHMCS product/bundle IDs (required)
 
 Every "Order Now" button on the site calls one of two helpers in
@@ -35,6 +46,12 @@ through these two functions.
 
 If your WHMCS base URL is ever different from `https://calling.kiatri.com`,
 update the single `WHMCS_BASE` constant at the top of `lib/whmcs.ts`.
+
+The header's "Client Login" link (`components/Header.tsx`) currently points
+to `https://calling.kiatri.com/clientarea.php`, WHMCS's default client-area
+path — confirm this is actually the enabled login URL for your install
+before launch (it's a guess based on the default install, not something
+this session verified against the live site).
 
 ## 2. Replace placeholder pricing (required before real customers order)
 
@@ -75,6 +92,14 @@ review and finalize all three before this site is used to actually process
 customer orders. Once approved, you can remove the `<LegalBanner />` call
 from each page.
 
+The contracting entity is named as **Kiatri (Pty) Ltd** in Terms, Privacy,
+About, and the footer copyright — search for `[LEGAL REVIEW NEEDED — insert
+registration number]` in `app/legal/terms/page.tsx` and fill in the real
+company registration number. Note: the site does **not** publicly disclose
+any parent-company/ownership structure (e.g. a holding company) — that was a
+deliberate choice pending your explicit confirmation that you want it public;
+add it yourself in `app/about/page.tsx` if you do.
+
 ## 5. Brand (optional)
 
 No existing kiatri.com brand assets were provided, so an original placeholder
@@ -88,6 +113,29 @@ branding:
   real logo (SVG preferred, inlined or in `public/`).
 - Set a real font in `app/globals.css` (`--font-sans`) and `app/layout.tsx`
   if you don't want the system-font fallback.
+
+## 6a. Still-missing pages (deliberately deferred, not oversights)
+
+A gap review against typical UCaaS/contact-centre marketing sites turned up
+more than could reasonably ship in one pass. Built so far, beyond the
+original 8-page brief: `/faq`, `/security` (Security & Compliance), `/numbers`
+(Numbers & Porting), plus SEO hygiene (`app/sitemap.ts`, `app/opengraph-image.tsx`,
+OG/Twitter metadata in `app/layout.tsx`).
+
+Still not built, and why:
+- **Named competitor comparison pages** ("Kiatri vs X") — explicitly decided
+  against, to avoid trademark/comparative-advertising risk. Revisit only if
+  you deliberately want to take on that legal exposure.
+- **Solutions-by-industry pages, integrations page, case studies, blog,
+  partner/reseller page** — straightforward to add later; not built yet for
+  lack of real content (industry-specific copy, actual integration list,
+  real customer stories) rather than technical difficulty.
+- **Book-a-demo/free-trial flow, support knowledge base with search, a real
+  status/uptime-monitor page, API/developer docs** — each needs a real
+  backend or third-party tool (a form service, a help-desk platform, an
+  uptime-monitoring service, actual API documentation to publish), which
+  is out of scope for a static marketing site with no backend of its own.
+  Decide on tooling for these before building them.
 
 ## 6. Contact form (optional, currently a TODO)
 

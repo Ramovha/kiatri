@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { ClockIcon, MapPinIcon } from '@/components/icons';
+import { SUPPORT_EMAIL } from '@/lib/site';
 
 export const metadata: Metadata = {
   title: 'Contact & Support',
@@ -13,17 +15,18 @@ export default function ContactPage() {
       <h1 className="mt-2 text-3xl font-bold text-navy-900 md:text-4xl">Talk to a real person</h1>
       <p className="mt-4 text-navy-700">
         For sales questions, custom quotes, or support on an existing account, reach us directly. Existing
-        customers can also raise a ticket from the billing portal.
+        customers can also raise a ticket from the billing portal. Common questions may already be answered
+        on our <Link href="/faq" className="font-medium text-ember-600 hover:text-ember-500">FAQ page</Link>.
       </p>
 
       <div className="mt-10 grid gap-6 sm:grid-cols-2">
         <a
-          href="mailto:hello@kiatri.co.za"
+          href={`mailto:${SUPPORT_EMAIL}`}
           className="rounded-2xl border border-navy-900/10 bg-white p-6 shadow-card transition hover:border-ember-500/50"
         >
           <h3 className="font-bold text-navy-900">Email us</h3>
-          <p className="mt-2 text-sm text-navy-700">hello@kiatri.co.za</p>
-          <p className="mt-1 text-xs text-navy-400">[REPLACE WITH REAL DATA — confirm actual support address]</p>
+          <p className="mt-2 text-sm text-navy-700">{SUPPORT_EMAIL}</p>
+          <p className="mt-1 text-xs text-navy-400">[REPLACE WITH REAL DATA — confirm actual domain/support address, see lib/site.ts]</p>
         </a>
         <a
           href="tel:+27000000000"

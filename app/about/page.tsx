@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { ClockIcon, MapPinIcon, ShieldIcon } from '@/components/icons';
 
 export const metadata: Metadata = {
@@ -42,13 +43,19 @@ export default function AboutPage() {
           failover on our SIP trunk tiers, so a single point of failure doesn&apos;t take your line down. We
           don&apos;t publish internal network topology or server details publicly — if you need infrastructure
           detail for a procurement or compliance review, contact us directly and we&apos;ll work through it
-          with you under NDA if required.
+          with you under NDA if required. See <Link href="/security" className="font-medium text-ember-600 hover:text-ember-500">Security &amp; Compliance</Link> for more on data protection and POPIA.
         </p>
         <h2 className="text-xl font-bold text-navy-900">Billing &amp; account management</h2>
         <p>
           Orders, invoices, and account management run through our billing portal at{' '}
           <span className="font-medium text-navy-900">calling.kiatri.com</span>. This marketing site links you
           there to check out — it isn&apos;t itself a login or billing system.
+        </p>
+        <h2 className="text-xl font-bold text-navy-900">Who you&apos;re contracting with</h2>
+        <p>
+          Services are provided, invoiced, and supported by Kiatri (Pty) Ltd, a registered South African
+          company. Kiatri trades under its own name — your invoice and contract are with Kiatri, not a
+          third party.
         </p>
       </div>
     </div>

@@ -10,8 +10,10 @@ export default function PrivacyPage() {
       <h1 className="text-3xl font-bold text-navy-900">Privacy Policy</h1>
       <div className="mt-6 space-y-4 text-sm leading-relaxed text-navy-700">
         <p>
-          This Privacy Policy explains what personal information Kiatri collects, why, and how it is
-          protected, in line with South Africa's Protection of Personal Information Act (POPIA).
+          This Privacy Policy explains what personal information Kiatri (Pty) Ltd ("Kiatri", "we", "us")
+          collects, why, and how it is protected, in line with South Africa's Protection of Personal
+          Information Act (POPIA). Kiatri (Pty) Ltd is the responsible party for personal information
+          processed through the Services, invoiced and contracted under its own name.
         </p>
         <h2 className="text-lg font-bold text-navy-900">1. Information we collect</h2>
         <p>

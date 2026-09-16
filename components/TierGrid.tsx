@@ -20,7 +20,11 @@ export default function TierGrid({ id, eyebrow, title, description, plans }: Tie
         </div>
         <div className="mt-10 grid gap-6 md:grid-cols-3">
           {plans.map((plan) => (
-            <PricingCard key={plan.id} plan={plan} />
+            // id lets the homepage plan finder deep-link straight to a tier,
+            // e.g. /products#pbx-10
+            <div key={plan.id} id={plan.id} className="scroll-mt-24">
+              <PricingCard plan={plan} />
+            </div>
           ))}
         </div>
       </div>

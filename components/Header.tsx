@@ -26,12 +26,21 @@ export default function Header() {
             </Link>
           ))}
         </nav>
-        <Link
-          href="/pricing"
-          className="rounded-full bg-ember-500 px-5 py-2 text-sm font-semibold text-white shadow-card transition hover:bg-ember-600"
-        >
-          Get Started
-        </Link>
+        <div className="flex items-center gap-4">
+          {/* TODO: confirm the real WHMCS client-area login path before launch — see SETUP.md */}
+          <a
+            href="https://calling.kiatri.com/clientarea.php"
+            className="hidden text-sm font-medium text-navy-800 transition hover:text-ember-600 sm:inline"
+          >
+            Client Login
+          </a>
+          <Link
+            href="/pricing"
+            className="rounded-full bg-ember-500 px-5 py-2 text-sm font-semibold text-white shadow-card transition hover:bg-ember-600"
+          >
+            Get Started
+          </Link>
+        </div>
       </div>
     </header>
   );
