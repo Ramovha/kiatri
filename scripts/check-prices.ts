@@ -276,9 +276,16 @@ async function checkAddonAttachments() {
   const queue = offeredCombos().filter((c) => !only || c.label === only);
   const failures: { combo: Combo; why: string }[] = [];
   const unverified: string[] = [];
+  // A time budget (default 8 minutes) keeps a slow billing site from stalling a build:
+  // combinations not reached in time are reported as unverified, never as passing.
+  const deadline = Date.now() + Number(process.env.ADDON_CHECK_BUDGET_MS ?? 8 * 60 * 1000);
   await Promise.all(
     Array.from({ length: 4 }, async () => {
       for (let c = queue.shift(); c; c = queue.shift()) {
+        if (Date.now() > deadline) {
+          unverified.push(`${c.label} + ${c.addonName} (out of time)`);
+          continue;
+        }
         let why: string | null;
         try {
           why = await attaches(c);
