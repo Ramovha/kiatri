@@ -12,3 +12,6 @@ export const SITE_NAME = 'Kiatri';
 // metadata (sitemap/OG) and on-page contact details — fix SITE_URL above and
 // this follows automatically.
 export const SUPPORT_EMAIL = `hello@${new URL(SITE_URL).hostname}`;
+
+// Headline per-minute rate for South African calls, shown on the home page.
+export const CALL_RATE_LABEL = 'R0,80';

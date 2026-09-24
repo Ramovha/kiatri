@@ -7,9 +7,13 @@ import CTAButton from './CTAButton';
 export default function PricingCard({
   plan,
   billingPeriod = 'monthly',
+  highlighted = false,
 }: {
   plan: Plan;
   billingPeriod?: BillingPeriod;
+  // Set when the visitor arrived with a team size (e.g. /business?users=10)
+  // so the matching tier stands out from its neighbours.
+  highlighted?: boolean;
 }) {
   const isYearly = billingPeriod === 'yearly';
   const displayPriceZAR =
@@ -18,9 +22,13 @@ export default function PricingCard({
   return (
     <div
       className={`relative flex h-full flex-col overflow-hidden rounded-2xl border bg-white p-6 shadow-card ${
-        plan.popular ? 'border-ember-500' : 'border-navy-900/10'
-      }`}
+        plan.popular || highlighted ? 'border-ember-500' : 'border-navy-900/10'
+      } ${highlighted ? 'ring-2 ring-ember-500 ring-offset-2' : ''}`}
+      data-highlighted={highlighted || undefined}
     >
+      {highlighted && (
+        <p className="mb-2 text-xs font-bold uppercase tracking-wide text-ember-600">Matches your team size</p>
+      )}
       {plan.popular && (
         // A corner ribbon rather than an inline pill — "Most Popular" reads
         // as genuinely more important than a muted "Coming soon" label, and

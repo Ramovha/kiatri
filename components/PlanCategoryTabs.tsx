@@ -25,12 +25,25 @@ export interface PlanCategory {
 export default function PlanCategoryTabs({ categories }: { categories: PlanCategory[] }) {
   const [activeId, setActiveId] = useState(categories[0]?.id);
   const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>('monthly');
+  const [highlightId, setHighlightId] = useState<string | null>(null);
 
   // Deep-linking: #trunks (etc.) on whichever page renders this component
   // preselects that tab instead of just scrolling past whichever tab
   // happens to be first — used by links from the homepage, footer, and
   // other pages that point at one specific category (currently /business).
   useEffect(() => {
+    // ?users=5|10|25|50 (from the homepage plan finder) highlights the
+    // matching PBX tier and opens the VoIP tab; anything else is ignored.
+    const users = new URLSearchParams(window.location.search).get('users');
+    const match = users && ['5', '10', '25', '50'].includes(users) ? `pbx-${users}` : null;
+    const matchCategory = match ? categories.find((category) => category.plans.some((plan) => plan.id === match)) : undefined;
+    if (match && matchCategory) {
+      setHighlightId(match);
+      setActiveId(matchCategory.id);
+      document.getElementById('plans')?.scrollIntoView();
+      return;
+    }
+
     const hash = window.location.hash.replace('#', '');
     if (categories.some((category) => category.id === hash)) {
       setActiveId(hash);
@@ -82,7 +95,7 @@ export default function PlanCategoryTabs({ categories }: { categories: PlanCateg
         }`}
       >
         {active.plans.map((plan) => (
-          <PricingCard key={plan.id} plan={plan} billingPeriod={billingPeriod} />
+          <PricingCard key={plan.id} plan={plan} billingPeriod={billingPeriod} highlighted={plan.id === highlightId} />
         ))}
       </div>
 
