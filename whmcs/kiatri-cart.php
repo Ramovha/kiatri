@@ -31,7 +31,9 @@
 const ALLOWED_PID = [1, 4, 5, 8, 9, 10, 13, 17, 18, 26, 27, 28];
 const ALLOWED_ADDON = [4, 5, 6];
 const ALLOWED_BID = [1, 2, 3, 4, 5, 6, 7, 8];
-const ALLOWED_CYCLES = ['monthly', 'annually'];
+// Monthly only for now: yearly pricing isn't set up in billing yet. Add
+// 'annually' back together with the yearly bundles.
+const ALLOWED_CYCLES = ['monthly'];
 const MAX_ITEMS = 8;
 
 $cycle = isset($_GET['cycle']) && in_array($_GET['cycle'], ALLOWED_CYCLES, true) ? $_GET['cycle'] : 'monthly';
