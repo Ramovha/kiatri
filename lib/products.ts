@@ -549,7 +549,7 @@ export const homeProducts: HomeProduct[] = [
 export interface Addon {
   id: string;
   // Short id used in links and query strings (?addon=ivr).
-  slug?: 'callerid' | 'ivr' | 'fax';
+  slug?: 'callblock' | 'ivr' | 'fax';
   // Billing-system Product Addon ID — attaches the addon to a plan's cart
   // item (addons[ID]=on) instead of selling it as a separate product.
   // Confirm against the billing system before changing.
@@ -578,7 +578,7 @@ export interface Addon {
 export const addons: Addon[] = [
   {
     id: 'addon-callerid-block',
-    slug: 'callerid',
+    slug: 'callblock',
     whmcsAddonId: 4,
     name: 'CallerID Block/Blacklist',
     tagline: 'Block scam and telemarketing calls',

@@ -1,21 +1,42 @@
-import { addons, Addon } from './products';
+import { addons, Addon, Plan, residentialPlans, linePlans, pbxTiers, trunkPlans } from './products';
+import { formatZAR } from './format';
+import { orderCartUrl } from './whmcs';
 
-// Which addon works with which plan — the single source of truth for the
-// Addons page and the pricing builder.
+// The single source of truth for addons: which plan can take which addon,
+// what it costs, and how it is attached to an order. Every page that shows an
+// addon (the pricing builder, the plan cards on /voice and /business, and the
+// /addons information page) reads from here and from lib/products.ts. No page
+// hard-codes an addon, a price or a rule.
 
 export type PlanFamily = 'home' | 'business' | 'pbx' | 'trunk';
 
-export const PLAN_FAMILIES: { family: PlanFamily; slug: string; label: string; short: string }[] = [
-  { family: 'home', slug: 'home-line', label: 'Home Line', short: 'Home Line' },
-  { family: 'business', slug: 'business-line', label: 'Business Line', short: 'Business Line' },
-  { family: 'pbx', slug: 'cloud-pbx', label: 'Cloud PBX', short: 'Cloud PBX' },
-  { family: 'trunk', slug: 'sip-trunk', label: 'SIP Trunk', short: 'SIP Trunk' },
+export const PLAN_FAMILIES: { family: PlanFamily; slug: string; label: string; noun: string }[] = [
+  { family: 'home', slug: 'home-line', label: 'Home Line', noun: 'Home' },
+  { family: 'business', slug: 'business-line', label: 'Business Line', noun: 'Business Line' },
+  { family: 'pbx', slug: 'cloud-pbx', label: 'Cloud PBX', noun: 'Cloud PBX' },
+  { family: 'trunk', slug: 'sip-trunk', label: 'SIP Trunk', noun: 'SIP Trunk' },
 ];
 
 export const familyFromSlug = (slug: string | null): PlanFamily | null =>
   PLAN_FAMILIES.find((f) => f.slug === slug)?.family ?? null;
 export const slugFromFamily = (family: PlanFamily) => PLAN_FAMILIES.find((f) => f.family === family)!.slug;
 export const labelFromFamily = (family: PlanFamily) => PLAN_FAMILIES.find((f) => f.family === family)!.label;
+const nounFromFamily = (family: PlanFamily) => PLAN_FAMILIES.find((f) => f.family === family)!.noun;
+
+// ---- plans -----------------------------------------------------------------
+
+// Every orderable plan card, keyed by its id (used in ?plan=line-800).
+const PLAN_LOOKUP: { plan: Plan; family: PlanFamily }[] = [
+  ...residentialPlans.filter((plan) => plan.id !== 'residential-unlimited').map((plan) => ({ plan, family: 'home' as const })),
+  ...linePlans.map((plan) => ({ plan, family: 'business' as const })),
+  ...pbxTiers.map((plan) => ({ plan, family: 'pbx' as const })),
+  ...trunkPlans.filter((plan) => typeof plan.priceZAR === 'number').map((plan) => ({ plan, family: 'trunk' as const })),
+];
+
+export const planById = (id: string | null) => PLAN_LOOKUP.find((entry) => entry.plan.id === id);
+export const familyOfPlanId = (id: string): PlanFamily | null => planById(id)?.family ?? null;
+
+// ---- eligibility -----------------------------------------------------------
 
 // What an addon can do on a plan family.
 type Eligibility = 'eligible' | 'included' | 'no';
@@ -23,7 +44,7 @@ type Eligibility = 'eligible' | 'included' | 'no';
 const ELIGIBILITY: Record<string, Record<PlanFamily, Eligibility>> = {
   'addon-callerid-block': { home: 'eligible', business: 'eligible', pbx: 'eligible', trunk: 'no' },
   'addon-virtual-receptionist': { home: 'no', business: 'eligible', pbx: 'included', trunk: 'no' },
-  'addon-virtual-fax': { home: 'eligible', business: 'eligible', pbx: 'eligible', trunk: 'eligible' },
+  'addon-virtual-fax': { home: 'no', business: 'eligible', pbx: 'eligible', trunk: 'eligible' },
 };
 
 // Where the billing system can ATTACH the addon to the plan's cart item today.
@@ -38,11 +59,13 @@ const ATTACHABLE: Record<string, PlanFamily[]> = {
   'addon-virtual-fax': ['business'],
 };
 
-const REASON_NAME: Record<string, string> = {
+// Short names used in sentences ("IVR isn't available on Home plans.").
+const SHORT_NAME: Record<string, string> = {
   'addon-callerid-block': 'Call blocking',
-  'addon-virtual-receptionist': 'The Virtual Receptionist',
+  'addon-virtual-receptionist': 'IVR',
   'addon-virtual-fax': 'Virtual Fax',
 };
+export const shortAddonName = (addon: Addon) => SHORT_NAME[addon.id] ?? addon.name;
 
 export type AddonState = 'available' | 'included' | 'unavailable' | 'soon';
 
@@ -54,22 +77,66 @@ export interface Availability {
 export function addonAvailability(addon: Addon, family: PlanFamily): Availability {
   if (addon.status === 'coming-soon') return { state: 'soon', reason: 'Coming soon.' };
   const rule = ELIGIBILITY[addon.id]?.[family] ?? 'no';
-  const plan = labelFromFamily(family);
+  const short = shortAddonName(addon);
+  const noun = nounFromFamily(family);
   if (rule === 'included') return { state: 'included' };
-  if (rule === 'no') return { state: 'unavailable', reason: `${REASON_NAME[addon.id] ?? addon.name} isn't available on ${plan} plans.` };
-  if (typeof addon.whmcsAddonId !== 'number' || !(ATTACHABLE[addon.id] ?? []).includes(family)) return { state: 'soon', reason: `Coming soon for ${plan}.` };
+  if (rule === 'no') return { state: 'unavailable', reason: `${short} isn't available on ${noun} plans.` };
+  if (typeof addon.whmcsAddonId !== 'number' || !(ATTACHABLE[addon.id] ?? []).includes(family)) {
+    return { state: 'soon', reason: `${short} is coming soon for ${noun} plans.` };
+  }
   return { state: 'available' };
 }
 
-// "Works with: Home Line · Business Line · Cloud PBX"
+// "Works with: Business Line · Cloud PBX · SIP Trunk"
 export function worksWith(addon: Addon): string[] {
   return PLAN_FAMILIES.filter((f) => {
     const rule = ELIGIBILITY[addon.id]?.[f.family];
     return rule === 'eligible' || rule === 'included';
-  }).map((f) => f.short);
+  }).map((f) => f.label);
 }
 
-// Every addon in display order, for the pricing builder's toggles.
+// ---- display and ordering --------------------------------------------------
+
+// Every addon in display order.
 export const BUILDER_ADDON_IDS = ['addon-callerid-block', 'addon-virtual-receptionist', 'addon-virtual-fax'];
 export const builderAddons = BUILDER_ADDON_IDS.map((id) => addons.find((a) => a.id === id)!);
-export const addonBySlug = (slug: string) => addons.find((a) => a.slug === slug);
+export const addonById = (id: string) => addons.find((a) => a.id === id);
+
+// Old links used ?addon=callerid.
+const SLUG_ALIASES: Record<string, string> = { callerid: 'callblock' };
+export const addonBySlug = (slug: string) => addons.find((a) => a.slug === (SLUG_ALIASES[slug] ?? slug));
+
+// "+ R80,00/month · R200,00 once-off setup" (setup omitted when there is none).
+export function formatAddonPrice(addon: Addon): string {
+  const monthly = `+ ${formatZAR(addon.priceZAR ?? 0)}/month`;
+  return addon.setupFeeZAR ? `${monthly} · ${formatZAR(addon.setupFeeZAR)} once-off setup` : monthly;
+}
+
+// The addons a plan family can switch on right now, in display order.
+export function switchableAddons(family: PlanFamily): Addon[] {
+  return builderAddons.filter((addon) => addonAvailability(addon, family).state === 'available');
+}
+
+// Keeps only addons the family can switch on, in the canonical order, so the
+// same selection always produces the same link.
+export function normaliseAddonIds(ids: string[], family: PlanFamily): string[] {
+  return builderAddons.filter((a) => ids.includes(a.id) && addonAvailability(a, family).state === 'available').map((a) => a.id);
+}
+
+interface OrderableLike {
+  whmcsPid?: number;
+  whmcsBid?: number;
+  comingSoon?: boolean;
+}
+
+// THE one place an order link is built. A plan and the addons switched on for
+// it become one cart item: pid:<plan>[addons:<ids>]. Addons are never added
+// as products of their own. `extras` are further plain items in the same
+// order (e.g. calling capacity). Returns null when anything in the order has
+// no order link yet.
+export function buildOrderLink(plan: OrderableLike, family: PlanFamily, addonIds: string[], extras: OrderableLike[] = []): string | null {
+  const ids = normaliseAddonIds(addonIds, family)
+    .map((id) => addonById(id)?.whmcsAddonId)
+    .filter((id): id is number => typeof id === 'number');
+  return orderCartUrl([{ product: plan, addonIds: ids }, ...extras]);
+}

@@ -30,6 +30,11 @@ export default function PlanCategoryTabs({ categories }: { categories: PlanCateg
   // happens to be first — used by links from the homepage, footer, and
   // other pages that point at one specific category (currently /business).
   useEffect(() => {
+    // ?plan=line-800 (a shared or restored selection) opens the tab holding that plan.
+    const planParam = new URLSearchParams(window.location.search).get('plan');
+    const planCategory = planParam ? categories.find((category) => category.plans.some((plan) => plan.id === planParam)) : undefined;
+    if (planCategory) setActiveId(planCategory.id);
+
     // ?users=5|10|25|50 (from the homepage plan finder) highlights the
     // matching PBX tier and opens the Cloud PBX tab; anything else is ignored.
     const users = new URLSearchParams(window.location.search).get('users');

@@ -1,8 +1,13 @@
+'use client';
+
 import { Plan } from '@/lib/products';
 import { formatZAR, yearlyMonthlyEquivalent, BillingPeriod } from '@/lib/format';
 import { CheckIcon } from './icons';
 import CTAButton from './CTAButton';
 import OrderButton from './OrderButton';
+import AddonToggles from './AddonToggles';
+import { buildOrderLink, familyOfPlanId } from '@/lib/addons';
+import { usePlanAddons } from '@/lib/usePlanAddons';
 
 export default function PricingCard({
   plan,
@@ -16,6 +21,10 @@ export default function PricingCard({
   highlighted?: boolean;
 }) {
   const isYearly = billingPeriod === 'yearly';
+  // Addons this plan can take are switched on right here; the Order button
+  // carries them into the cart attached to the plan.
+  const family = familyOfPlanId(plan.id);
+  const addonsState = usePlanAddons(plan.id, family);
   const displayPriceZAR =
     typeof plan.priceZAR === 'number' && isYearly ? yearlyMonthlyEquivalent(plan.priceZAR) : plan.priceZAR;
 
@@ -97,13 +106,20 @@ export default function PricingCard({
         <p className="mt-4 text-xs text-navy-700">{plan.balanceNote}</p>
       )}
 
+      {family && <AddonToggles family={family} selected={addonsState.selected} onToggle={addonsState.toggle} compact />}
+
       {plan.orderStyles ? (
         <div className="mt-6 space-y-3">
           {plan.orderStyles.map((style) => (
             <div key={style.label} className="rounded-xl border border-navy-900/10 p-3">
               <p className="text-sm font-bold text-navy-900">{style.label}</p>
               <p className="mt-0.5 text-xs text-navy-700">{style.description}</p>
-              <OrderButton plan={style} variant="ghost" className="mt-2 w-full">
+              <OrderButton
+                plan={style}
+                url={family ? buildOrderLink(style, family, addonsState.selected) : undefined}
+                variant="ghost"
+                className="mt-2 w-full"
+              >
                 Order {style.label}
               </OrderButton>
             </div>
@@ -112,6 +128,7 @@ export default function PricingCard({
       ) : plan.whmcsPid || plan.whmcsBid || plan.comingSoon ? (
         <OrderButton
           plan={plan}
+          url={family ? buildOrderLink(plan, family, addonsState.selected) : undefined}
           cycle={isYearly ? 'annually' : 'monthly'}
           variant={plan.popular ? 'primary' : 'ghost'}
           className="mt-6 w-full"
