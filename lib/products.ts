@@ -43,6 +43,13 @@ import {
 
 export type PricingStatus = 'illustrative-pending-costing';
 
+export interface PlanOrderStyle {
+  label: string;
+  description: string;
+  whmcsPid?: number;
+  comingSoon?: boolean;
+}
+
 export interface Plan {
   id: string;
   name: string;
@@ -89,6 +96,10 @@ export interface Plan {
   whmcsBid?: number; // billing-system bundle ID (cart.php?a=add&bid=) — used instead of pid for PBX tiers
   // No orderable product exists yet — render a disabled "Coming soon" button.
   comingSoon?: boolean;
+  // Cards that are sold in more than one style (Home 200 / Home 400: Prepaid
+  // or Capped) list each style here instead of a single order button. A style
+  // with no whmcsPid renders a disabled "Coming soon" button.
+  orderStyles?: PlanOrderStyle[];
   ctaHref?: string; // used when there's no whmcsPid (e.g. "/contact")
   ctaLabel?: string; // defaults to 'Order Now' in PricingCard when whmcsPid is set
   popular?: boolean;
@@ -98,8 +109,7 @@ export interface Plan {
 // customers see a single consistent number instead of a different rate per
 // card. Real, confirmed rate as of the Ringotel cost pass (R0.5236/min
 // real cost) — no longer the earlier R0.35–R0.45/min illustrative range.
-const OVERAGE_RATE_NOTE =
-  'After your included minutes, calls are billed at R0.79/min (based on real provider costs, see pricing page for details)';
+const OVERAGE_RATE_NOTE = 'After your included minutes, calls are billed at R0,80/min';
 
 // --- Line Plans: single SIP line, no PBX required (icttech.ca residential +
 // business VoIP plans for structure; ZAR pricing below is benchmarked against
@@ -121,7 +131,7 @@ export const linePlans: Plan[] = [
     didIncluded: '1 DID or port your number',
     features: [
       'International calling — Coming Soon',
-      'R0.79/min blended local & mobile rate (based on real provider costs)',
+      'Calls from R0,80/min, local and mobile',
       'Self-service control panel with balance top-up',
       'Low-balance email alerts before you run out',
       'Voicemail to email',
@@ -406,19 +416,19 @@ export const residentialPlans: Plan[] = [
     name: 'Home Pay-As-You-Go',
     tagline: 'Perfect for light or occasional use at home',
     minutesLabel: 'Billing',
-    minutesIncluded: 'Metered — pay-as-you-go balance',
+    minutesIncluded: 'Pay as you go from your prepaid balance',
     capacity: '1 line',
     hideCapacityRow: true,
-    didIncluded: '1 DID or port your number',
+    didIncluded: '1 local number, or bring your own',
     features: [
       'Keep your existing number (porting)',
       'Simple self-service app/portal',
       'Voicemail to email',
-      'Works with any phone app — no hardware required',
-      'No contracts, cancel anytime',
+      'Use our app or your own cordless phone',
+      'No lock-in, cancel anytime',
     ],
     priceZAR: 79,
-    billingNote: '+ per-minute call charges from your prepaid balance',
+    billingNote: '+ calls from R0,80/min from your prepaid balance',
     balanceNote: 'Calls pause automatically if your balance runs out — top up anytime to resume.',
     pricingStatus: 'illustrative-pending-costing',
     whmcsPid: 1,
@@ -427,42 +437,48 @@ export const residentialPlans: Plan[] = [
     id: 'residential-200',
     name: 'Home 200',
     tagline: 'Reliable home line with bundled minutes',
-    minutesIncluded: '200 minutes included',
-    overageNote: OVERAGE_RATE_NOTE,
+    minutesIncluded: '200 minutes every month',
     capacity: '1 line',
     hideCapacityRow: true,
-    didIncluded: '1 DID or port your number',
+    didIncluded: '1 local number, or bring your own',
     features: [
       'Keep your existing number (porting)',
       'Simple self-service app/portal',
       'Voicemail to email',
-      'Works with any phone app — no hardware required',
-      'No contracts, cancel anytime',
+      'Use our app or your own cordless phone',
+      'No lock-in, cancel anytime',
     ],
     priceZAR: 180,
     pricingStatus: 'illustrative-pending-costing',
-    whmcsPid: 4, // Home 200 Prepaid
+    // Prepaid orders pid 4. Capped has no product yet: add its whmcsPid here
+    // (and drop comingSoon) once it exists.
+    orderStyles: [
+      { label: 'Prepaid', description: 'Keep talking after your minutes from R0,80/min.', whmcsPid: 4 },
+      { label: 'Capped', description: 'One fixed price. Nothing extra, ever.', comingSoon: true },
+    ],
     popular: true,
   },
   {
     id: 'residential-400',
     name: 'Home 400',
     tagline: 'More bundled minutes for households that call a lot',
-    minutesIncluded: '400 minutes included',
-    overageNote: OVERAGE_RATE_NOTE,
+    minutesIncluded: '400 minutes every month',
     capacity: '1 line',
     hideCapacityRow: true,
-    didIncluded: '1 DID or port your number',
+    didIncluded: '1 local number, or bring your own',
     features: [
       'Keep your existing number (porting)',
       'Simple self-service app/portal',
       'Voicemail to email',
-      'Works with any phone app — no hardware required',
-      'No contracts, cancel anytime',
+      'Use our app or your own cordless phone',
+      'No lock-in, cancel anytime',
     ],
     priceZAR: 340,
     pricingStatus: 'illustrative-pending-costing',
-    whmcsPid: 5, // Home 400 Prepaid
+    orderStyles: [
+      { label: 'Prepaid', description: 'Keep talking after your minutes from R0,80/min.', whmcsPid: 5 },
+      { label: 'Capped', description: 'One fixed price. Nothing extra, ever.', comingSoon: true },
+    ],
   },
   {
     id: 'residential-unlimited',
@@ -471,15 +487,15 @@ export const residentialPlans: Plan[] = [
     minutesIncluded: 'Unlimited local calling',
     capacity: '1 line',
     hideCapacityRow: true,
-    didIncluded: '1 DID or port your number',
+    didIncluded: '1 local number, or bring your own',
     features: [
       'Unlimited local calling up to a fair-use cap of ~355 minutes/month — typical household usage stays well within it',
       'International calling — Coming Soon',
       'Keep your existing number (porting)',
       'Simple self-service app/portal',
       'Voicemail to email',
-      'Works with any phone app — no hardware required',
-      'No contracts, cancel anytime',
+      'Use our app or your own cordless phone',
+      'No lock-in, cancel anytime',
     ],
     // Real cost data (R13.02/mo DID rental + R0.5236/min real call cost)
     // puts break-even at ~355 min/month for this price — disclosed above as
