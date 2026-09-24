@@ -18,6 +18,8 @@ interface PromoBannerProps {
   eyebrow: string;
   headlineLead: string;
   headlineAccent: string;
+  // Plain text that follows the orange accent in the headline.
+  headlineTail?: string;
   description: string;
   // The price highlight box is optional — pages with no single meaningful
   // price to headline (e.g. a catalog of addons) can omit all four and use
@@ -26,26 +28,35 @@ interface PromoBannerProps {
   priceValue?: string;
   priceSuffix?: string;
   priceNote?: string;
+  // A second, smaller line inside the price card (e.g. the per-minute rate).
+  priceSecondary?: string;
   ctaLabel: string;
   ctaHref: string;
   // Floating badge callouts over the illustration — same treatment as the
   // homepage Hero's "Support answered locally" / "Auto-provisioned after
   // payment" badges, reused here rather than inventing a new pattern.
   pills?: PromoPill[];
+  // A row of icon + label reassurances under the button.
+  trustRow?: PromoPill[];
+  illustrationAlt?: string;
 }
 
 export default function PromoBanner({
   eyebrow,
   headlineLead,
   headlineAccent,
+  headlineTail,
   description,
   priceLabel,
   priceValue,
   priceSuffix,
   priceNote,
+  priceSecondary,
   ctaLabel,
   ctaHref,
   pills,
+  trustRow,
+  illustrationAlt,
 }: PromoBannerProps) {
   return (
     <div className="relative overflow-hidden bg-gradient-to-br from-navy-100/60 via-white to-white">
@@ -53,7 +64,7 @@ export default function PromoBanner({
         <div>
           <p className="text-sm font-semibold uppercase tracking-wide text-ember-600">{eyebrow}</p>
           <h1 className="mt-3 font-display text-4xl font-bold leading-[1.1] text-navy-900 md:text-5xl">
-            {headlineLead} <span className="text-ember-500">{headlineAccent}</span>
+            {headlineLead} <span className="text-ember-500">{headlineAccent}</span>{headlineTail ? ` ${headlineTail}` : ''}
           </h1>
           <p className="mt-4 max-w-md text-navy-700">{description}</p>
 
@@ -66,19 +77,31 @@ export default function PromoBanner({
                     <span className="text-4xl font-extrabold text-navy-900">{priceValue}</span>
                     <span className="text-sm font-medium text-navy-700">{priceSuffix}</span>
                   </p>
+                  {priceSecondary && <p className="mt-0.5 text-sm font-semibold text-ember-600">{priceSecondary}</p>}
                 </div>
               </div>
-              <p className="mt-1.5 text-xs text-navy-400">{priceNote}</p>
+              {priceNote && <p className="mt-1.5 text-xs text-navy-400">{priceNote}</p>}
             </>
           )}
 
           <div className="mt-6">
             <CTAButton href={ctaHref}>{ctaLabel}</CTAButton>
           </div>
+
+          {trustRow && (
+            <ul className="mt-6 flex flex-wrap gap-x-6 gap-y-2">
+              {trustRow.map(({ icon: Icon, label }) => (
+                <li key={label} className="flex items-center gap-2 text-sm text-navy-700">
+                  <Icon className="h-4 w-4 text-ember-500" />
+                  {label}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
         <div className="relative hidden justify-self-center md:flex">
-          <HeroIllustration className="h-72 w-72" />
+          <HeroIllustration className="h-72 w-72" label={illustrationAlt} />
 
           {pills?.map((pill, i) => {
             const Icon = pill.icon;

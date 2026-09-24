@@ -15,6 +15,7 @@ interface CTAButtonProps {
   variant?: Variant;
   external?: boolean;
   className?: string;
+  size?: 'md' | 'sm';
   // Fires before navigation — used where a click needs a side-effect first
   // (e.g. logging a captured lead) without turning this into a form.
   onClick?: () => void;
@@ -26,9 +27,11 @@ export default function CTAButton({
   variant = 'primary',
   external = false,
   className = '',
+  size = 'md',
   onClick,
 }: CTAButtonProps) {
-  const classes = `inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold transition ${VARIANT_CLASSES[variant]} ${className}`;
+  const sizeClasses = size === 'sm' ? 'px-4 py-2 text-xs' : 'px-6 py-3 text-sm';
+  const classes = `inline-flex items-center justify-center gap-2 rounded-full ${sizeClasses} font-semibold transition ${VARIANT_CLASSES[variant]} ${className}`;
 
   if (external) {
     // WHMCS checkout links stay in the same tab — it's a continuation of the

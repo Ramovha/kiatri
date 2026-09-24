@@ -493,6 +493,37 @@ export const residentialPlans: Plan[] = [
   },
 ];
 
+// --- Home Line products: Home 200 / Home 400 each come in two styles, and each
+// style is its own billing product. "Prepaid" includes the minutes plus the
+// freedom to keep talking; "Capped" is one fixed monthly price. The Capped
+// products are not created in the billing system yet, so they carry no
+// whmcsPid and render a disabled "Coming soon" button until one is added. ---
+export type HomeStyle = 'prepaid' | 'capped';
+
+export interface HomeProduct {
+  id: string;
+  name: string;
+  plan: 'Home 200' | 'Home 400';
+  style: HomeStyle;
+  priceZAR: number;
+  minutes: number;
+  whmcsPid?: number;
+  comingSoon?: boolean;
+}
+
+// Same monthly price as the residential plan of the same name. NOTE: the
+// Capped price is not confirmed separately — it mirrors Prepaid until the
+// Capped products exist and are priced.
+const home200Price = residentialPlans.find((plan) => plan.id === 'residential-200')!.priceZAR!;
+const home400Price = residentialPlans.find((plan) => plan.id === 'residential-400')!.priceZAR!;
+
+export const homeProducts: HomeProduct[] = [
+  { id: 'home-200-prepaid', name: 'Home 200 Prepaid', plan: 'Home 200', style: 'prepaid', priceZAR: home200Price, minutes: 200, whmcsPid: 4 },
+  { id: 'home-200-capped', name: 'Home 200 Capped', plan: 'Home 200', style: 'capped', priceZAR: home200Price, minutes: 200, comingSoon: true },
+  { id: 'home-400-prepaid', name: 'Home 400 Prepaid', plan: 'Home 400', style: 'prepaid', priceZAR: home400Price, minutes: 400, whmcsPid: 5 },
+  { id: 'home-400-capped', name: 'Home 400 Capped', plan: 'Home 400', style: 'capped', priceZAR: home400Price, minutes: 400, comingSoon: true },
+];
+
 // --- Addons: attachable extras sold alongside any plan above. Kept as a
 // separate type from Plan since the shape genuinely differs (optional price
 // for "coming soon" items, a one-off setup fee, an eligibility restriction) —

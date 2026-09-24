@@ -7,28 +7,31 @@ type Variant = 'primary' | 'secondary' | 'ghost';
 interface OrderButtonProps {
   plan: { whmcsPid?: number; whmcsBid?: number; comingSoon?: boolean };
   cycle?: BillingCycle;
+  // Overrides the link (e.g. a multi-item cart link). null = not orderable.
+  url?: string | null;
   variant?: Variant;
   className?: string;
+  size?: 'md' | 'sm';
   children?: ReactNode;
 }
 
 // An order button that can never render a broken or empty link: with no
 // configured product it shows a disabled "Coming soon" button instead.
-export default function OrderButton({ plan, cycle = 'monthly', variant = 'primary', className = '', children }: OrderButtonProps) {
-  const href = planOrderUrl(plan, cycle);
+export default function OrderButton({ plan, cycle = 'monthly', url, variant = 'primary', className = '', size = 'md', children }: OrderButtonProps) {
+  const href = url !== undefined ? url : planOrderUrl(plan, cycle);
   if (!href) {
     return (
       <button
         type="button"
         disabled
-        className={`inline-flex cursor-not-allowed items-center justify-center rounded-full border border-navy-900/15 bg-navy-100 px-6 py-3 text-sm font-semibold text-navy-400 ${className}`}
+        className={`inline-flex cursor-not-allowed items-center justify-center rounded-full border border-navy-900/15 bg-navy-100 ${size === 'sm' ? 'px-4 py-2 text-xs' : 'px-6 py-3 text-sm'} font-semibold text-navy-400 ${className}`}
       >
         Coming soon
       </button>
     );
   }
   return (
-    <CTAButton href={href} external variant={variant} className={className}>
+    <CTAButton href={href} external variant={variant} size={size} className={className}>
       {children ?? 'Order Now'}
     </CTAButton>
   );

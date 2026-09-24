@@ -2,9 +2,9 @@
 // deliberately not a stock/stand-in photo of a person, since we have no real
 // photography to use and won't fabricate any. Reads as "calls flowing
 // through a resilient network" via simple nodes + connecting arcs.
-export default function HeroIllustration({ className = '' }: { className?: string }) {
+export default function HeroIllustration({ className = '', label = 'Illustration of calls routing through a network' }: { className?: string; label?: string }) {
   return (
-    <svg viewBox="0 0 480 480" fill="none" className={className} role="img" aria-label="Illustration of calls routing through a network">
+    <svg viewBox="0 0 480 480" fill="none" className={className} role="img" aria-label={label}>
       <circle cx="240" cy="240" r="200" fill="url(#hero-grad)" opacity="0.5" />
       <g stroke="#FF8A3D" strokeWidth="2" opacity="0.7">
         <path d="M120 300 C170 220 230 260 240 180" fill="none" />
