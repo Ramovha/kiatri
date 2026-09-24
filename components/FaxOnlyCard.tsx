@@ -19,3 +19,10 @@ export default function FaxOnlyCard() {
     </div>
   );
 }
+
+// The card as an element, or undefined while the standalone product isn't on
+// sale — so a page never reserves empty space for it.
+export function faxOnlyCardIfAvailable() {
+  const fax = addons.find((addon) => addon.slug === 'fax');
+  return fax && typeof fax.priceZAR === 'number' && fax.whmcsPid ? <FaxOnlyCard /> : undefined;
+}
