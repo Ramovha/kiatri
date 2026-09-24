@@ -2,10 +2,9 @@ import { PhoneHardwareOption } from '@/lib/products';
 import { formatZAR } from '@/lib/format';
 import { CheckIcon, ClockIcon } from './icons';
 
-// Rent and Buy now carry real illustrative prices (see lib/products.ts) but
-// stay "Coming Soon" and un-orderable regardless — pricing and fulfillment
-// logistics (sourcing, stock, shipping) are separate blockers, and only
-// pricing is solved so far.
+// Rent and Buy carry prices (see lib/products.ts) but stay "Coming Soon" and
+// un-orderable — fulfilment logistics (sourcing, stock, shipping) are still
+// being settled.
 export default function PhoneOptionCard({
   option,
   onSeeResidential,
@@ -37,7 +36,6 @@ export default function PhoneOptionCard({
             <span className="text-3xl font-extrabold text-navy-900">{formatZAR(option.priceZAR)}</span>
             <span className="text-sm text-navy-700">{option.priceSuffix}</span>
           </div>
-          <p className="mt-1 text-xs text-navy-400">Illustrative — see pricing page for details</p>
           <p className="mt-2 text-sm font-semibold text-navy-900">{option.priceNote}</p>
         </>
       ) : (

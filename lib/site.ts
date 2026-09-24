@@ -13,5 +13,6 @@ export const SITE_NAME = 'Kiatri';
 // this follows automatically.
 export const SUPPORT_EMAIL = `hello@${new URL(SITE_URL).hostname}`;
 
-// Headline per-minute rate for South African calls, shown on the home page.
-export const CALL_RATE_LABEL = 'R0,80';
+// Headline per-minute rate for South African calls. Defined once here and used
+// everywhere it appears in copy, so a rate change is a one-line edit.
+export const CALL_RATE = 'R0,80';

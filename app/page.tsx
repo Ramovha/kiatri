@@ -10,7 +10,7 @@ import {
   CheckCircleIcon,
   BoltIcon,
 } from '@/components/icons';
-import { CALL_RATE_LABEL } from '@/lib/site';
+import { CALL_RATE } from '@/lib/site';
 
 const BILLING_POINTS = [
   { icon: ClockIcon, text: 'Billed per minute: every call is rounded up to the next full minute.' },
@@ -211,7 +211,7 @@ export default function HomePage() {
                 Seats and trunk capacity are priced separately and shown up front — not buried behind a vague
                 &ldquo;starting from&rdquo; headline that changes once you add what you actually need.
               </p>
-              <p className="mt-3 text-sm font-bold text-ember-400">Calls from {CALL_RATE_LABEL} per minute</p>
+              <p className="mt-3 text-sm font-bold text-ember-400">Calls from {CALL_RATE} per minute</p>
             </div>
             <div>
               <h3 className="text-lg font-bold">Live in minutes, not days</h3>

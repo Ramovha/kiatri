@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { ReactNode, useState } from 'react';
 import { CheckIcon } from './icons';
 
 export interface FeatureTab {
@@ -9,6 +9,10 @@ export interface FeatureTab {
   title: string;
   description: string;
   bullets: string[];
+  // Replaces the default abstract panel with a page-specific visual.
+  visual?: ReactNode;
+  // Optional link shown under the bullets.
+  link?: { href: string; label: string };
 }
 
 // A tabbed feature showcase for the platform capabilities behind a Kiatri
@@ -51,8 +55,13 @@ export default function FeatureTabs({ tabs }: { tabs: FeatureTab[] }) {
               </li>
             ))}
           </ul>
+          {active.link && (
+            <a href={active.link.href} className="mt-5 inline-block text-sm font-semibold text-ember-400 hover:text-ember-300">
+              {active.link.label}
+            </a>
+          )}
         </div>
-        <PanelMockup />
+        {active.visual ?? <PanelMockup />}
       </div>
     </div>
   );
