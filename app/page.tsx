@@ -10,11 +10,11 @@ import {
   CheckCircleIcon,
   BoltIcon,
 } from '@/components/icons';
-import { TOPUP_MIN_LABEL, CALL_RATE_LABEL, SUPPORT_HOURS_LABEL } from '@/lib/site';
+import { CALL_RATE_LABEL } from '@/lib/site';
 
 const BILLING_POINTS = [
   { icon: ClockIcon, text: 'Billed per minute: every call is rounded up to the next full minute.' },
-  { icon: TagIcon, text: `Prepaid and in control: top up anytime, from as little as ${TOPUP_MIN_LABEL}.` },
+  { icon: TagIcon, text: 'Prepaid and in control: top up anytime from your client area.' },
   { icon: CheckCircleIcon, text: 'No surprise bills: when your credit runs out, calls pause until you top up.' },
   { icon: BoltIcon, text: 'Low-balance alerts: we let you know before your credit runs out.' },
 ];
@@ -30,9 +30,9 @@ const FAQS = [
     answer: 'Yes. You can port your current number to Kiatri, or choose a new local number.',
   },
   {
-    question: 'Is there a contract?',
+    question: 'Is there a lock-in period?',
     answer:
-      'Pay-as-you-go plans have no contract. Larger businesses can choose a Business Account with one monthly invoice.',
+      'Pay-as-you-go plans have no lock-in. Larger businesses can choose a Business Account with one monthly invoice.',
   },
   {
     question: 'Do you offer international calls?',
@@ -182,13 +182,13 @@ export default function HomePage() {
           <div className="rounded-2xl border border-navy-900/10 bg-white p-6 shadow-card">
             <h2 className="text-xl font-bold text-navy-900">Need a handset?</h2>
             <p className="mt-2 text-sm text-navy-700">
-              Need a phone? Rent or buy a cordless handset with your line.
+              Handsets coming soon. Rent or buy a cordless phone with your line.
             </p>
             <a
               href="/voice#connect-phone"
               className="mt-4 inline-block text-sm font-semibold text-ember-600 hover:text-ember-500"
             >
-              See handset options →
+              Handset options →
             </a>
           </div>
         </div>
@@ -203,9 +203,6 @@ export default function HomePage() {
               <p className="mt-2 text-sm text-navy-200">
                 No offshore ticket queue. When you call for support, you reach someone in your own time zone
                 who understands the South African market.
-              </p>
-              <p className="mt-2 text-sm font-medium text-white">
-                Support hours: {SUPPORT_HOURS_LABEL}, South African time.
               </p>
             </div>
             <div>

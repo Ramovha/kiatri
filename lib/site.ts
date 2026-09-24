@@ -13,8 +13,5 @@ export const SITE_NAME = 'Kiatri';
 // this follows automatically.
 export const SUPPORT_EMAIL = `hello@${new URL(SITE_URL).hostname}`;
 
-// Home-page placeholders — replace each string with the final figure (keep the
-// "R" prefix) before merging to main. They render as-is on the page.
-export const TOPUP_MIN_LABEL = 'R[AMOUNT]';
-export const CALL_RATE_LABEL = 'R[RATE]';
-export const SUPPORT_HOURS_LABEL = '[DAYS AND HOURS]';
+// Headline per-minute rate for South African calls, shown on the home page.
+export const CALL_RATE_LABEL = 'R0,80';

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ClockIcon, MapPinIcon } from '@/components/icons';
 import { SUPPORT_EMAIL } from '@/lib/site';
+import ContactEmailCard from '@/components/ContactEmailCard';
 
 export const metadata: Metadata = {
   title: 'Contact & Support',
@@ -20,14 +21,7 @@ export default function ContactPage() {
       </p>
 
       <div className="mt-10 grid gap-6 sm:grid-cols-2">
-        <a
-          href={`mailto:${SUPPORT_EMAIL}`}
-          className="rounded-2xl border border-navy-900/10 bg-white p-6 shadow-card transition hover:border-ember-500/50"
-        >
-          <h3 className="font-bold text-navy-900">Email us</h3>
-          <p className="mt-2 text-sm text-navy-700">{SUPPORT_EMAIL}</p>
-          <p className="mt-1 text-xs text-navy-400">[REPLACE WITH REAL DATA — confirm actual domain/support address, see lib/site.ts]</p>
-        </a>
+        <ContactEmailCard email={SUPPORT_EMAIL} />
         <a
           href="tel:+27000000000"
           className="rounded-2xl border border-navy-900/10 bg-white p-6 shadow-card transition hover:border-ember-500/50"
