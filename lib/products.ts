@@ -812,7 +812,7 @@ export const callCenterTiers: CallCenterTier[] = [
       },
       {
         name: 'Call recording',
-        description: 'FusionPBX native — confirmed working capability.',
+        description: 'Record and archive calls for training, quality, and dispute resolution.',
         status: 'available',
         icon: RecordDotIcon,
       },
@@ -851,13 +851,13 @@ export const callCenterTiers: CallCenterTier[] = [
       {
         name: 'Call recording transcription',
         description:
-          'FusionPBX supports this natively, but we have not yet confirmed it wired up and tested end-to-end in our own deployment.',
+          'Turn recorded calls into searchable text, so you can review conversations quickly.',
         status: 'roadmap',
         icon: TranscriptIcon,
       },
       {
         name: 'Real-time agent/queue dashboard',
-        description: 'Proven feasible via a third-party precedent (QueueMetrics) — not yet built/integrated on our side.',
+        description: 'Real-time queue and agent stats on a shared screen for the floor.',
         status: 'roadmap',
         icon: DashboardIcon,
       },
@@ -940,7 +940,7 @@ export const callCenterTiers: CallCenterTier[] = [
       },
       {
         name: 'Workforce management',
-        description: 'Scheduling and forecasting — likely a build or third-party integration (e.g. QueueMetrics), not a quick win.',
+        description: 'Scheduling and forecasting for larger teams.',
         status: 'roadmap',
         icon: CalendarClockIcon,
       },
