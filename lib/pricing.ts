@@ -10,8 +10,9 @@ import { formatZAR } from './format';
 export { CALL_RATE };
 
 export function includedMinutes(plan: { minutesIncluded: string }): number | null {
-  const match = plan.minutesIncluded.match(/^([\d,]+)\s+minutes/);
-  return match ? Number(match[1].replace(/,/g, '')) : null;
+  // Handles "1,600" and "1 600" (with a normal or non-breaking space).
+  const match = plan.minutesIncluded.match(/^([\d,\s\u00a0]+?)\s+minutes/);
+  return match ? Number(match[1].replace(/[^\d]/g, '')) : null;
 }
 
 // 1600 -> "1 600" (South African grouping, same as formatZAR).
@@ -64,7 +65,7 @@ export interface FaqItem {
 export const PRICING_FAQS: FaqItem[] = [
   {
     question: 'How much does VoIP cost in South Africa with Kiatri?',
-    answer: `Lines start from ${formatZAR(LINES_FROM_ZAR)} per month and calls from ${CALL_RATE} per minute, with no VAT added. Cloud PBX plans for teams start from ${formatZAR(PBX_FROM_ZAR)} per month for 5 users.`,
+    answer: `Lines start from ${formatZAR(LINES_FROM_ZAR)} per month and calls from ${CALL_RATE} per minute, with no VAT added. Cloud PBX plans for teams start from ${formatZAR(PBX_FROM_ZAR)} per month for 5 users, and every Cloud PBX tier includes its minutes every month, then calls from ${CALL_RATE} per minute.`,
   },
   {
     question: 'What is a cloud PBX?',

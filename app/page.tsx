@@ -47,7 +47,7 @@ const FAQS = [
 
 const BUSINESS_CATEGORIES = [
   {
-    href: '/business#voip',
+    href: '/business#cloud-pbx',
     icon: HandsetIcon,
     title: 'Cloud PBX',
     description: 'Seats, extensions, and a full PBX feature set with instant provisioning — from 5 to 50+ seats.',

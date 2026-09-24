@@ -44,3 +44,18 @@ export function AppShot({ image, alt, className = '' }: { image: AppImage; alt: 
     />
   );
 }
+
+// A browser window drawn in CSS, for portal screenshots.
+export function BrowserFrame({ children }: { children: ReactNode }) {
+  return (
+    <div className="overflow-hidden rounded-xl border border-white/10 bg-white shadow-2xl">
+      <div className="flex items-center gap-1.5 border-b border-navy-900/10 bg-navy-100 px-4 py-2.5">
+        <span className="h-2.5 w-2.5 rounded-full bg-navy-300" />
+        <span className="h-2.5 w-2.5 rounded-full bg-navy-300" />
+        <span className="h-2.5 w-2.5 rounded-full bg-navy-300" />
+        <span className="ml-3 h-4 flex-1 rounded-full bg-white/80" />
+      </div>
+      <div className="relative aspect-[16/10] w-full bg-white">{children}</div>
+    </div>
+  );
+}

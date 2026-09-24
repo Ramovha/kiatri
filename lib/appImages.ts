@@ -13,14 +13,14 @@ export interface AppImage {
 
 export type AppImages = Partial<Record<'desktop-app' | 'mobile-dialer' | 'mobile-call-history' | 'mobile-incoming-call', AppImage>>;
 
-export function getAppImages(): AppImages {
+function readManifest<T extends string>(folder: string): Partial<Record<T, AppImage>> {
   try {
-    const manifest = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'public/images/app/manifest.json'), 'utf8'));
-    const result: AppImages = {};
+    const manifest = JSON.parse(fs.readFileSync(path.join(process.cwd(), `public/images/${folder}/manifest.json`), 'utf8'));
+    const result: Partial<Record<T, AppImage>> = {};
     for (const [name, entry] of Object.entries<any>(manifest)) {
-      result[name as keyof AppImages] = {
-        src1x: `/images/app/${name}-1x.webp`,
-        src2x: `/images/app/${name}-2x.webp`,
+      result[name as T] = {
+        src1x: `/images/${folder}/${name}-1x.webp`,
+        src2x: `/images/${folder}/${name}-2x.webp`,
         width: entry['1x'].width,
         height: entry['1x'].height,
       };
@@ -29,4 +29,14 @@ export function getAppImages(): AppImages {
   } catch {
     return {};
   }
+}
+
+export function getAppImages(): AppImages {
+  return readManifest<keyof AppImages>('app');
+}
+
+export type PortalImages = Partial<Record<'portal-dashboard' | 'portal-login', AppImage>>;
+
+export function getPortalImages(): PortalImages {
+  return readManifest<'portal-dashboard' | 'portal-login'>('portal');
 }

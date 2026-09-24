@@ -4,8 +4,7 @@ import { useEffect, useState } from 'react';
 import { Plan } from '@/lib/products';
 import PricingCard from './PricingCard';
 import ChannelVisualizer from './ChannelVisualizer';
-import BillingPeriodToggle from './BillingPeriodToggle';
-import { parseChannelCount, BillingPeriod } from '@/lib/format';
+import { parseChannelCount } from '@/lib/format';
 
 export interface PlanCategory {
   id: string;
@@ -24,7 +23,6 @@ export interface PlanCategory {
 // still showing each plan as one self-contained card.
 export default function PlanCategoryTabs({ categories }: { categories: PlanCategory[] }) {
   const [activeId, setActiveId] = useState(categories[0]?.id);
-  const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>('monthly');
   const [highlightId, setHighlightId] = useState<string | null>(null);
 
   // Deep-linking: #trunks (etc.) on whichever page renders this component
@@ -33,7 +31,7 @@ export default function PlanCategoryTabs({ categories }: { categories: PlanCateg
   // other pages that point at one specific category (currently /business).
   useEffect(() => {
     // ?users=5|10|25|50 (from the homepage plan finder) highlights the
-    // matching PBX tier and opens the VoIP tab; anything else is ignored.
+    // matching PBX tier and opens the Cloud PBX tab; anything else is ignored.
     const users = new URLSearchParams(window.location.search).get('users');
     const match = users && ['5', '10', '25', '50'].includes(users) ? `pbx-${users}` : null;
     const matchCategory = match ? categories.find((category) => category.plans.some((plan) => plan.id === match)) : undefined;
@@ -41,18 +39,28 @@ export default function PlanCategoryTabs({ categories }: { categories: PlanCateg
       setHighlightId(match);
       setActiveId(matchCategory.id);
       document.getElementById('plans')?.scrollIntoView();
-      return;
     }
 
-    const hash = window.location.hash.replace('#', '');
-    if (categories.some((category) => category.id === hash)) {
-      setActiveId(hash);
-      // The hash (e.g. "#trunks") isn't a real DOM id anywhere on the page —
-      // it only drives which tab is selected — so the browser's own
-      // hash-scroll won't land here on its own. Scroll it into view manually.
-      document.getElementById('plans')?.scrollIntoView();
-    }
-    // Only run once on mount — this isn't meant to react to later hash changes.
+    const syncHash = () => {
+      let hash = window.location.hash.replace('#', '');
+      // Old links to #voip land on the Cloud PBX tab; tidy the address bar too.
+      if (hash === 'voip') {
+        hash = 'cloud-pbx';
+        window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}#cloud-pbx`);
+      }
+      if (categories.some((category) => category.id === hash)) {
+        setActiveId(hash);
+        // The hash (e.g. "#trunks") isn't a real DOM id anywhere on the page —
+        // it only drives which tab is selected — so the browser's own
+        // hash-scroll won't land here on its own. Scroll it into view manually.
+        document.getElementById('plans')?.scrollIntoView();
+      }
+    };
+    syncHash();
+    // Links to another tab from elsewhere on the same page (footer, menus).
+    window.addEventListener('hashchange', syncHash);
+    return () => window.removeEventListener('hashchange', syncHash);
+    // Set up once on mount; later hash changes are handled by the listener above.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -81,10 +89,6 @@ export default function PlanCategoryTabs({ categories }: { categories: PlanCateg
 
       <p className="mx-auto mt-6 max-w-2xl text-center text-navy-700">{active.description}</p>
 
-      <div className="mt-6">
-        <BillingPeriodToggle billingPeriod={billingPeriod} onChange={setBillingPeriod} />
-      </div>
-
       <div
         className={`mt-8 grid gap-6 ${
           active.plans.length >= 5
@@ -95,7 +99,7 @@ export default function PlanCategoryTabs({ categories }: { categories: PlanCateg
         }`}
       >
         {active.plans.map((plan) => (
-          <PricingCard key={plan.id} plan={plan} billingPeriod={billingPeriod} highlighted={plan.id === highlightId} />
+          <PricingCard key={plan.id} plan={plan} highlighted={plan.id === highlightId} />
         ))}
       </div>
 

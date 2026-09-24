@@ -73,7 +73,10 @@ export default function PricingCard({
           </div>
         )}
         {plan.overageNote && (
-          <p className="col-span-2 text-xs leading-snug text-navy-400">{plan.overageNote}</p>
+          <div className="col-span-2">
+            <dt className="sr-only">Beyond your included minutes</dt>
+            <dd className="text-xs leading-snug text-navy-700">{plan.overageNote}</dd>
+          </div>
         )}
         <div className="col-span-2">
           <dt className="text-navy-400">Number</dt>

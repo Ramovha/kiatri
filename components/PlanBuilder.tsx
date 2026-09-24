@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { pbxTiers, linePlans, homeProducts, HomeStyle, Plan } from '@/lib/products';
+import { pbxTiers, linePlans, homeProducts, HomeStyle } from '@/lib/products';
 import { builderAddons, addonAvailability, addonBySlug, familyFromSlug, PlanFamily } from '@/lib/addons';
 import { homePayg, meteredTrunks, includedMinutes, formatMinutes } from '@/lib/pricing';
 import { CALL_RATE } from '@/lib/site';
@@ -35,8 +35,6 @@ const HOME_STYLES: { value: HomeStyle; label: string; description: string }[] = 
   { value: 'capped', label: 'Capped', description: 'One fixed price every month. Nothing extra, ever.' },
 ];
 
-const PBX_CALLING_LABELS = ['Pay-as-you-go', ...meteredTrunks.map((trunk) => `${formatMinutes(includedMinutes(trunk) ?? 0)} minutes`)];
-
 const chip = (active: boolean) =>
   `min-h-[44px] rounded-xl border px-4 py-2 text-sm font-semibold transition ${
     active
@@ -54,8 +52,7 @@ interface Orderable {
   comingSoon?: boolean;
 }
 
-// Seats and calling capacity priced separately, shown transparently. Every
-// price here is read from lib/products.ts — this is a different lens on the
+// Every price here is read from lib/products.ts — this is a different lens on the
 // same data, not new numbers.
 export default function PlanBuilder() {
   const [family, setFamily] = useState<Family>('pbx');
@@ -63,7 +60,6 @@ export default function PlanBuilder() {
   const [homeStyle, setHomeStyle] = useState<HomeStyle>('prepaid');
   const [lineIndex, setLineIndex] = useState(0);
   const [pbxIndex, setPbxIndex] = useState(0);
-  const [pbxCalling, setPbxCalling] = useState(-1); // -1 = pay-as-you-go
   const [trunkIndex, setTrunkIndex] = useState(0);
   const [addonIds, setAddonIds] = useState<string[]>([]);
 
@@ -97,7 +93,6 @@ export default function PlanBuilder() {
   const homeIsBundle = homeKey !== 'payg';
 
   let base: Orderable;
-  let trunkAddOn: Plan | null = null;
   let callingLine: string;
   let baseMinutes: number | null = null;
 
@@ -117,10 +112,10 @@ export default function PlanBuilder() {
     baseMinutes = includedMinutes(plan);
     callingLine = baseMinutes ? `${formatMinutes(baseMinutes)} minutes included every month` : `Calls from ${CALL_RATE}/min`;
   } else if (family === 'pbx') {
+    // Every Cloud PBX tier includes its own minutes, then the standard rate.
     base = pbxTiers[pbxIndex];
-    trunkAddOn = pbxCalling >= 0 ? meteredTrunks[pbxCalling] : null;
-    const trunkMinutes = trunkAddOn ? includedMinutes(trunkAddOn) : null;
-    callingLine = trunkMinutes ? `${formatMinutes(trunkMinutes)} minutes included every month` : `Calls from ${CALL_RATE}/min`;
+    baseMinutes = includedMinutes(pbxTiers[pbxIndex]);
+    callingLine = `${formatMinutes(baseMinutes ?? 0)} minutes included every month`;
   } else {
     base = meteredTrunks[trunkIndex];
     baseMinutes = includedMinutes(meteredTrunks[trunkIndex]);
@@ -137,17 +132,14 @@ export default function PlanBuilder() {
   const setupTotal = selectedAddons.reduce((sum, addon) => sum + (addon.setupFeeZAR ?? 0), 0);
 
   const total = useMemo(
-    () => (base.priceZAR ?? 0) + (trunkAddOn?.priceZAR ?? 0) + selectedAddons.reduce((sum, addon) => sum + (addon.priceZAR ?? 0), 0),
-    [base, trunkAddOn, selectedAddons],
+    () => (base.priceZAR ?? 0) + selectedAddons.reduce((sum, addon) => sum + (addon.priceZAR ?? 0), 0),
+    [base, selectedAddons],
   );
 
-  // One link carries everything selected: the plan, any calling capacity and
-  // any addons. Checkout opens with each item in the cart once.
+  // One link carries everything selected: the plan and any addons. Checkout
+  // opens with each item in the cart once.
   // Addons are attached to the plan's own cart item, not added as products.
-  const cartUrl = orderCartUrl([
-    { product: base, addonIds: selectedAddons.map((addon) => addon.whmcsAddonId!) },
-    ...(trunkAddOn ? [trunkAddOn] : []),
-  ]);
+  const cartUrl = orderCartUrl([{ product: base, addonIds: selectedAddons.map((addon) => addon.whmcsAddonId!) }]);
   const familyInfo = FAMILIES.find((f) => f.value === family)!;
 
   function toggleAddon(id: string) {
@@ -239,33 +231,19 @@ export default function PlanBuilder() {
           )}
 
           {family === 'pbx' && (
-            <>
-              <div className="mt-6">
-                <p className="text-xs font-semibold uppercase tracking-wide text-navy-400">Seats</p>
-                <div role="group" aria-label="Seats" className="mt-2 flex flex-wrap gap-2">
-                  {pbxTiers.map((tier, i) => (
-                    <button key={tier.id} type="button" aria-pressed={i === pbxIndex} onClick={() => setPbxIndex(i)} className={chip(i === pbxIndex)}>
-                      {tier.capacity.replace(' seats', '')}
-                    </button>
-                  ))}
-                </div>
+            <div className="mt-6">
+              <p className="text-xs font-semibold uppercase tracking-wide text-navy-400">Seats</p>
+              <div role="group" aria-label="Seats" className="mt-2 flex flex-wrap gap-2">
+                {pbxTiers.map((tier, i) => (
+                  <button key={tier.id} type="button" aria-pressed={i === pbxIndex} onClick={() => setPbxIndex(i)} className={chip(i === pbxIndex)}>
+                    {tier.capacity.replace(' seats', '')}
+                  </button>
+                ))}
               </div>
-              <div className="mt-6">
-                <p className="text-xs font-semibold uppercase tracking-wide text-navy-400">Calling</p>
-                <div role="group" aria-label="Calling" className="mt-2 flex flex-wrap gap-2">
-                  {PBX_CALLING_LABELS.map((label, i) => (
-                    <button key={label} type="button" aria-pressed={i - 1 === pbxCalling} onClick={() => setPbxCalling(i - 1)} className={chip(i - 1 === pbxCalling)}>
-                      {label}
-                    </button>
-                  ))}
-                </div>
-                <p className="mt-3 text-sm text-navy-700">
-                  {trunkAddOn
-                    ? `${formatMinutes(includedMinutes(trunkAddOn) ?? 0)} minutes every month for your team. Keep talking from ${CALL_RATE}/min.`
-                    : `Pay only for the calls you make. From ${CALL_RATE}/min.`}
-                </p>
-              </div>
-            </>
+              <p className="mt-3 text-sm text-navy-700">
+                {formatMinutes(baseMinutes ?? 0)} minutes every month for your team. Keep talking from {CALL_RATE}/min.
+              </p>
+            </div>
           )}
 
           {family === 'trunk' && (
@@ -332,12 +310,6 @@ export default function PlanBuilder() {
                 <span>{base.name}</span>
                 <span>{formatZAR(base.priceZAR ?? 0)}</span>
               </li>
-              {trunkAddOn && (
-                <li className="flex justify-between gap-4">
-                  <span>{trunkAddOn.name}</span>
-                  <span>{formatZAR(trunkAddOn.priceZAR ?? 0)}</span>
-                </li>
-              )}
               {selectedAddons.map((addon) => (
                 <li key={addon.id} className="flex justify-between gap-4">
                   <span>{addon.name}</span>

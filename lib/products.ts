@@ -72,7 +72,7 @@ export interface Plan {
   // never imply a grace period that doesn't exist.
   balanceNote?: string;
   // Small business-size label shown above the plan name (e.g. "Small
-  // Business" / "Growing Business" / "Enterprise") — used on the VoIP Plans
+  // Business" / "Growing Business" / "Established Business" / "Large Business") — used on the VoIP Plans
   // (PBX) tab only, purely additive labeling, doesn't change price/specs.
   segment?: string;
   // Overrides the "Capacity" spec-row label — the Residential tab avoids the
@@ -109,7 +109,7 @@ export interface Plan {
 // customers see a single consistent number instead of a different rate per
 // card. Real, confirmed rate as of the Ringotel cost pass (R0.5236/min
 // real cost) — no longer the earlier R0.35–R0.45/min illustrative range.
-const OVERAGE_RATE_NOTE = 'After your included minutes, calls are billed at R0,80/min';
+const OVERAGE_RATE_NOTE = 'Keep talking from R0,80/min.';
 
 // --- Line Plans: single SIP line, no PBX required (icttech.ca residential +
 // business VoIP plans for structure; ZAR pricing below is benchmarked against
@@ -126,9 +126,9 @@ export const linePlans: Plan[] = [
     name: 'Pay-As-You-Go',
     tagline: 'Entry-level line — top up and pay only for what you use',
     minutesLabel: 'Billing',
-    minutesIncluded: 'Metered — pay-as-you-go balance',
+    minutesIncluded: 'Pay only for the calls you make, from R0,80/min, from your prepaid balance.',
     capacity: '1 channel',
-    didIncluded: '1 DID or port your number',
+    didIncluded: '1 local number, or bring your own',
     features: [
       'International calling — Coming Soon',
       'Calls from R0,80/min, local and mobile',
@@ -136,10 +136,9 @@ export const linePlans: Plan[] = [
       'Low-balance email alerts before you run out',
       'Voicemail to email',
       'Bring your own IP phone or app',
-      'No contracts',
+      'No lock-in',
     ],
     priceZAR: 89,
-    billingNote: '+ per-minute call charges from your prepaid balance',
     balanceNote: 'Calls pause automatically if your balance runs out — top up anytime to resume.',
     pricingStatus: 'illustrative-pending-costing',
     whmcsPid: 8,
@@ -148,17 +147,17 @@ export const linePlans: Plan[] = [
     id: 'line-200',
     name: 'Line 200',
     tagline: 'Reliable single line for a small business or home office',
-    minutesIncluded: '200 minutes included',
+    minutesIncluded: '200 minutes every month',
     overageNote: OVERAGE_RATE_NOTE,
     capacity: '1–2 channels',
-    didIncluded: '1 DID or port your number',
+    didIncluded: '1 local number, or bring your own',
     features: [
       'International calling — Coming Soon',
       'Self-service control panel with balance top-up',
       'Low-balance email alerts before you run out',
       'Voicemail to email',
       'Bring your own IP phone or app',
-      'No contracts',
+      'No lock-in',
     ],
     priceZAR: 220,
     pricingStatus: 'illustrative-pending-costing',
@@ -169,17 +168,17 @@ export const linePlans: Plan[] = [
     id: 'line-800',
     name: 'Line 800',
     tagline: 'More bundled minutes for regular calling',
-    minutesIncluded: '800 minutes included',
+    minutesIncluded: '800 minutes every month',
     overageNote: OVERAGE_RATE_NOTE,
     capacity: '1–2 channels',
-    didIncluded: '1 DID or port your number',
+    didIncluded: '1 local number, or bring your own',
     features: [
       'International calling — Coming Soon',
       'Self-service control panel with balance top-up',
       'Low-balance email alerts before you run out',
       'Voicemail to email',
       'Bring your own IP phone or app',
-      'No contracts',
+      'No lock-in',
     ],
     priceZAR: 700,
     pricingStatus: 'illustrative-pending-costing',
@@ -189,17 +188,17 @@ export const linePlans: Plan[] = [
     id: 'line-1600',
     name: 'Line 1600',
     tagline: 'High-volume single line for heavy callers',
-    minutesIncluded: '1,600 minutes included',
+    minutesIncluded: '1 600 minutes every month',
     overageNote: OVERAGE_RATE_NOTE,
     capacity: '1–2 channels',
-    didIncluded: '1 DID or port your number',
+    didIncluded: '1 local number, or bring your own',
     features: [
       'International calling — Coming Soon',
       'Self-service control panel with balance top-up',
       'Low-balance email alerts before you run out',
       'Voicemail to email',
       'Bring your own IP phone or app',
-      'No contracts',
+      'No lock-in',
     ],
     priceZAR: 1280,
     pricingStatus: 'illustrative-pending-costing',
@@ -209,17 +208,17 @@ export const linePlans: Plan[] = [
     id: 'line-3200',
     name: 'Line 3200',
     tagline: 'Our highest single-line tier for call-heavy operations',
-    minutesIncluded: '3,200 minutes included',
+    minutesIncluded: '3 200 minutes every month',
     overageNote: OVERAGE_RATE_NOTE,
     capacity: '1–2 channels',
-    didIncluded: '1 DID or port your number',
+    didIncluded: '1 local number, or bring your own',
     features: [
       'International calling — Coming Soon',
       'Self-service control panel with balance top-up',
       'Low-balance email alerts before you run out',
       'Voicemail to email',
       'Bring your own IP phone or app',
-      'No contracts',
+      'No lock-in',
     ],
     priceZAR: 2540,
     pricingStatus: 'illustrative-pending-costing',
@@ -234,15 +233,15 @@ export const pbxTiers: Plan[] = [
     name: 'PBX 5',
     segment: 'Small Business',
     tagline: 'Full PBX for a small team',
-    minutesIncluded: '200 minutes included',
+    minutesIncluded: '200 minutes every month',
     overageNote: OVERAGE_RATE_NOTE,
     capacity: '5 seats',
-    didIncluded: '1 DID or port your number',
+    didIncluded: '1 local number, or bring your own',
     features: [
       'Full PBX feature set',
       'Web-based admin portal',
       'Instant seat provisioning',
-      'Bring your own IP phones, or use ours',
+      'Bring your own IP phones',
       'Simplified management, less IT workload',
     ],
     // R324 PBX component + R220 Line 200 (bundled minutes tier) = R544 total.
@@ -255,15 +254,15 @@ export const pbxTiers: Plan[] = [
     name: 'PBX 10',
     segment: 'Growing Business',
     tagline: 'Growing teams that need more headroom',
-    minutesIncluded: '800 minutes included',
+    minutesIncluded: '800 minutes every month',
     overageNote: OVERAGE_RATE_NOTE,
     capacity: '10 seats',
-    didIncluded: '1 DID or port your number',
+    didIncluded: '1 local number, or bring your own',
     features: [
       'Full PBX feature set',
       'Web-based admin portal',
       'Instant seat provisioning',
-      'Bring your own IP phones, or use ours',
+      'Bring your own IP phones',
       'Simplified management, less IT workload',
     ],
     // R340 PBX component + R700 Line 800 (bundled minutes tier) = R1,040 total.
@@ -275,21 +274,21 @@ export const pbxTiers: Plan[] = [
   {
     id: 'pbx-25',
     name: 'PBX 25',
-    segment: 'Enterprise',
+    segment: 'Established Business',
     tagline: 'Established offices and multi-department setups',
     // Bundled minutes tier bumped from 800 to 1,600 to match the Line 1600
     // component now underlying this total (see priceZAR comment below) —
     // keeping the old 800-minute copy at the new higher price would read as
     // a price increase with nothing to show for it.
-    minutesIncluded: '1,600 minutes included',
+    minutesIncluded: '1 600 minutes every month',
     overageNote: OVERAGE_RATE_NOTE,
     capacity: '25 seats',
-    didIncluded: '1 DID or port your number',
+    didIncluded: '1 local number, or bring your own',
     features: [
       'Full PBX feature set',
       'Web-based admin portal',
       'Instant seat provisioning',
-      'Bring your own IP phones, or use ours',
+      'Bring your own IP phones',
       'Simplified management, less IT workload',
     ],
     // R1,280 PBX component + R1,280 Line 1600 (bundled minutes tier) = R2,560 total.
@@ -304,15 +303,15 @@ export const pbxTiers: Plan[] = [
     tagline: 'Large teams and multi-department operations',
     // Bundled minutes tier bumped to 3,200 to match the Line 3200 component
     // underlying this total — same reasoning as PBX 25 above.
-    minutesIncluded: '3,200 minutes included',
+    minutesIncluded: '3 200 minutes every month',
     overageNote: OVERAGE_RATE_NOTE,
     capacity: '50 seats',
-    didIncluded: '1 DID or port your number',
+    didIncluded: '1 local number, or bring your own',
     features: [
       'Full PBX feature set',
       'Web-based admin portal',
       'Instant seat provisioning',
-      'Bring your own IP phones, or use ours',
+      'Bring your own IP phones',
       'Simplified management, less IT workload',
     ],
     // R2,210 PBX component + R2,540 Line 3200 (bundled minutes tier) = R4,750 total.
@@ -328,9 +327,10 @@ export const trunkPlans: Plan[] = [
     id: 'trunk-3400',
     name: 'Metro 3400',
     tagline: 'Entry-level trunk for a small call volume',
-    minutesIncluded: '3,400 minutes included',
+    minutesIncluded: '3 400 minutes every month',
+    overageNote: OVERAGE_RATE_NOTE,
     capacity: '3 channels',
-    didIncluded: '1 DID included',
+    didIncluded: '1 local number included',
     features: [
       'International calling — Coming Soon',
       'Self-service control panel',
@@ -347,9 +347,10 @@ export const trunkPlans: Plan[] = [
     id: 'trunk-5400',
     name: 'Metro 5400',
     tagline: 'Our most popular trunk for growing call volume',
-    minutesIncluded: '5,400 minutes included',
+    minutesIncluded: '5 400 minutes every month',
+    overageNote: OVERAGE_RATE_NOTE,
     capacity: '4 channels',
-    didIncluded: '1 DID included',
+    didIncluded: '1 local number included',
     features: [
       'International calling — Coming Soon',
       'Self-service control panel',
@@ -367,9 +368,10 @@ export const trunkPlans: Plan[] = [
     id: 'trunk-8400',
     name: 'Metro 8400',
     tagline: 'High-volume trunking for busy contact lines',
-    minutesIncluded: '8,400 minutes included',
+    minutesIncluded: '8 400 minutes every month',
+    overageNote: OVERAGE_RATE_NOTE,
     capacity: '6 channels',
-    didIncluded: '1 DID included',
+    didIncluded: '1 local number included',
     features: [
       'International calling — Coming Soon',
       'Self-service control panel',

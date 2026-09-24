@@ -45,7 +45,7 @@ export default function PlanFinder() {
     if (audience === 'home') {
       router.push('/voice');
     } else if (audience === 'business') {
-      router.push(users === '50+' ? BUSINESS_ACCOUNT_HREF : `/business?users=${users}#voip`);
+      router.push(users === '50+' ? BUSINESS_ACCOUNT_HREF : `/business?users=${users}#cloud-pbx`);
     } else {
       router.push(agents === '50+' ? BUSINESS_ACCOUNT_HREF : `/call-center?agents=${agents}`);
     }
