@@ -3,6 +3,8 @@ import PromoBanner from '@/components/PromoBanner';
 import PlanCategoryTabs, { PlanCategory } from '@/components/PlanCategoryTabs';
 import FeatureTabs, { FeatureTab } from '@/components/FeatureTabs';
 import BusinessAccountsBlock from '@/components/BusinessAccountsBlock';
+import FaxOnlyCard from '@/components/FaxOnlyCard';
+import ExistingCustomerLine from '@/components/ExistingCustomerLine';
 import PlanComparison from '@/components/PlanComparison';
 import { BrowserFrame, AppShot } from '@/components/voice/Frames';
 import { IllustrationCard, VoicemailIllustration } from '@/components/voice/Illustrations';
@@ -41,6 +43,7 @@ const PLAN_CATEGORIES: PlanCategory[] = [
     description: 'A single business phone line — no PBX needed. Pick your bundled minutes.',
     plans: linePlans,
     visualizerPlan: popularLine,
+    footer: <FaxOnlyCard />,
   },
   {
     id: 'trunks',
@@ -259,7 +262,8 @@ export default function BusinessPage() {
           <div className="mt-8">
             <PlanCategoryTabs categories={PLAN_CATEGORIES} />
           </div>
-          <p className="mt-6 text-center text-sm text-navy-700">
+          <ExistingCustomerLine className="mt-6" />
+          <p className="mt-3 text-center text-sm text-navy-700">
             Want to see the exact monthly total as you configure it? Try our{' '}
             <a href="/pricing#builder" className="font-semibold text-ember-600 hover:text-ember-500">
               cost calculator

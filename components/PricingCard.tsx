@@ -6,8 +6,8 @@ import { CheckIcon } from './icons';
 import CTAButton from './CTAButton';
 import OrderButton from './OrderButton';
 import AddonToggles from './AddonToggles';
-import { AddonLockNote, useAddonLock } from './AddonLock';
 import { buildOrderLink, familyOfPlanId, orderSummary } from '@/lib/addons';
+import { usePlanAddons } from '@/lib/usePlanAddons';
 
 export default function PricingCard({
   plan,
@@ -24,16 +24,13 @@ export default function PricingCard({
   const displayPriceZAR =
     typeof plan.priceZAR === 'number' && isYearly ? yearlyMonthlyEquivalent(plan.priceZAR) : plan.priceZAR;
 
-  // The addon lock: once an addon is selected, a plan that doesn't work with
-  // ALL selected addons is greyed out, can't be ordered, says why, and offers
-  // a "Remove <addon>" link. Otherwise the Order button carries the selected
-  // addons into the cart attached to this plan.
-  const lock = useAddonLock();
+  // "Add extras": only addons this plan can take are offered, switched on
+  // right here; the Order button carries them into the cart attached to this
+  // plan.
   const family = familyOfPlanId(plan.id);
-  const blockers = family ? lock.blockers(family) : [];
-  const locked = blockers.length > 0;
+  const extras = usePlanAddons(plan.id, family);
   const linkFor = (item: { whmcsPid?: number; whmcsBid?: number; comingSoon?: boolean }) =>
-    family && !locked ? buildOrderLink(item, family, lock.selected) : undefined;
+    family ? buildOrderLink(item, family, extras.selected) : undefined;
 
   return (
     <div
@@ -41,13 +38,12 @@ export default function PricingCard({
         plan.popular || highlighted ? 'border-ember-500' : 'border-navy-900/10'
       } ${highlighted ? 'ring-2 ring-ember-500 ring-offset-2' : ''}`}
       data-highlighted={highlighted || undefined}
-      data-locked={locked || undefined}
       data-plan={plan.id}
     >
       {highlighted && (
         <p className="mb-2 text-xs font-bold uppercase tracking-wide text-ember-600">Matches your team size</p>
       )}
-      <div className={`flex flex-1 flex-col ${locked ? 'opacity-60' : ''}`}>
+      <div className="flex flex-1 flex-col">
         {plan.popular && (
           // A corner ribbon rather than an inline pill — "Most Popular" reads
           // as genuinely more important than a muted "Coming soon" label, and
@@ -117,18 +113,12 @@ export default function PricingCard({
         )}
 
         {family && (
-          <AddonToggles
-            family={family}
-            selected={lock.selected}
-            onToggle={(addonId) => lock.toggle(addonId, plan.id)}
-            disabled={locked}
-            compact
-          />
+          <AddonToggles family={family} selected={extras.selected} onToggle={extras.toggle} compact />
         )}
 
-        {family && !locked && (plan.whmcsPid || plan.whmcsBid || plan.orderStyles) && (
+        {family && (plan.whmcsPid || plan.whmcsBid || plan.orderStyles) && (
           <p data-testid="order-summary" className="mt-6 text-xs font-semibold text-navy-900">
-            {orderSummary(plan.name, family, lock.selected)}
+            {orderSummary(plan.name, family, extras.selected)}
           </p>
         )}
 
@@ -141,7 +131,6 @@ export default function PricingCard({
                 <OrderButton
                   plan={style}
                   url={linkFor(style)}
-                  locked={locked && !style.comingSoon}
                   variant="ghost"
                   className="mt-2 w-full"
                 >
@@ -154,7 +143,6 @@ export default function PricingCard({
           <OrderButton
             plan={plan}
             url={linkFor(plan)}
-            locked={locked && !plan.comingSoon}
             cycle={isYearly ? 'annually' : 'monthly'}
             variant={plan.popular ? 'primary' : 'ghost'}
             className="mt-3 w-full"
@@ -167,8 +155,6 @@ export default function PricingCard({
           </CTAButton>
         )}
       </div>
-
-      {locked && <AddonLockNote blockers={blockers} className="mt-4" />}
     </div>
   );
 }

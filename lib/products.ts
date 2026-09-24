@@ -616,19 +616,6 @@ export const addons: Addon[] = [
     pricingStatus: 'illustrative-pending-costing',
   },
   {
-    id: 'addon-callerid-lookup',
-    name: 'Caller ID Lookup',
-    tagline: 'Caller name lookup — availability being confirmed for South Africa',
-    features: [
-      'Show the caller’s name, not just their number',
-      'Works across every plan once available',
-    ],
-    status: 'coming-soon',
-    pricingStatus: 'illustrative-pending-costing',
-    // No whmcsPid: not orderable yet — pricing TBD pending research into
-    // South African CNAM database support.
-  },
-  {
     id: 'addon-virtual-fax',
     slug: 'fax',
     whmcsAddonId: 6,
@@ -645,25 +632,6 @@ export const addons: Addon[] = [
     status: 'available',
     pricingStatus: 'illustrative-pending-costing',
     whmcsPid: 13,
-  },
-  {
-    id: 'addon-ai-receptionist',
-    name: 'AI Virtual Receptionist',
-    tagline: 'An AI that answers, understands, and routes calls — even after hours',
-    description:
-      'Handles common questions, books appointments, and routes complex calls to a real person — trained on your business. Different from our rule-based Virtual Receptionist (IVR) addon above: this one understands what a caller is asking, not just which key they pressed.',
-    features: [
-      'Answers common questions automatically',
-      'Books appointments',
-      'Routes complex calls to a real person when needed',
-      'Works after hours',
-    ],
-    status: 'coming-soon',
-    pricingStatus: 'illustrative-pending-costing',
-    // Deliberately no priceZAR: this needs usage/minute-based pricing given
-    // real speech-to-text/LLM/text-to-speech component costs, not a flat
-    // fee — see ROADMAP.md for the cost research. Do not publish a firm
-    // rate until a real prototype exists and is tested.
   },
 ];
 

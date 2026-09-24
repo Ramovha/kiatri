@@ -7,7 +7,6 @@ import PricingCard from './PricingCard';
 import PhoneOptionCard from './PhoneOptionCard';
 import FeatureTabs, { FeatureTab } from './FeatureTabs';
 import PillTabs from './PillTabs';
-import { AddonLockProvider, AddonLockBar } from './AddonLock';
 import { LaptopFrame, PhoneFrame, AppShot } from './voice/Frames';
 import {
   IllustrationCard,
@@ -168,7 +167,7 @@ export default function VoiceTabsSection({ images }: { images: AppImages }) {
   }, []);
 
   return (
-    <AddonLockProvider>
+    <>
       <PillTabs options={TOP_TABS} activeId={tab} onChange={(id) => setTab(id as TopTab)} />
 
       {tab === 'residential' ? (
@@ -177,10 +176,7 @@ export default function VoiceTabsSection({ images }: { images: AppImages }) {
             Call and message straight from our app — no hardware required. Simple plans, priced
             honestly.
           </p>
-          <div className="mx-auto mt-8 max-w-5xl">
-            <AddonLockBar />
-          </div>
-          <div className="mx-auto grid max-w-5xl gap-6 md:grid-cols-3">
+          <div className="mx-auto mt-8 grid max-w-5xl gap-6 md:grid-cols-3">
             {homePlans.map((plan) => (
               <PricingCard key={plan.id} plan={plan} />
             ))}
@@ -223,6 +219,6 @@ export default function VoiceTabsSection({ images }: { images: AppImages }) {
           <FeatureTabs key={tab} tabs={tab === 'residential' ? residentialTabs(images) : PHONE_FEATURE_TABS} />
         </div>
       </section>
-    </AddonLockProvider>
+    </>
   );
 }

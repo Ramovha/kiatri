@@ -8,7 +8,6 @@ const ROUTES = [
   { path: '/voice', priority: 0.8 },
   { path: '/business', priority: 0.8 },
   { path: '/call-center', priority: 0.8 },
-  { path: '/addons', priority: 0.7 },
   { path: '/numbers', priority: 0.6 },
   { path: '/security', priority: 0.6 },
   { path: '/faq', priority: 0.6 },

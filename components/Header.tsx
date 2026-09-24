@@ -7,7 +7,6 @@ import { LogoMark } from './icons/Logo';
 const NAV = [
   { href: '/pricing', label: 'Pricing' },
   { href: '/voice', label: 'Home Voice' },
-  { href: '/addons', label: 'Addons' },
   { href: '/business', label: 'Business' },
   { href: '/call-center', label: 'Call Center' },
   { href: '/about', label: 'About' },

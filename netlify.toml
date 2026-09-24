@@ -17,6 +17,11 @@
   to = "/business#line"
   status = 301
 
+[[redirects]]
+  from = "/addons"
+  to = "/pricing"
+  status = 301
+
 [[headers]]
   for = "/*"
   [headers.values]
