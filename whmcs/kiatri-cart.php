@@ -24,8 +24,9 @@
  * visitor is sent to that step first; WHMCS then continues to the cart, and
  * they proceed to checkout from there.
  *
- * Only the IDs listed below can be added. Never add the hidden products
- * (pid 3, 11, 12, 16, 19, 21-24, 29-33) — bundles pull those in by themselves.
+ * Only the IDs listed below can be added. Hidden and retired products are
+ * never allowed — bundles pull their own parts in by themselves, and addons
+ * are only ever attached to a plan (addons[ID]=on), never added on their own.
  */
 
 const ALLOWED_PID = [1, 4, 5, 8, 9, 10, 13, 17, 18, 26, 27, 28];

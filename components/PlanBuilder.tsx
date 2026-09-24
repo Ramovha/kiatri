@@ -1,14 +1,15 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { pbxTiers, linePlans, homeProducts, HomeStyle, Plan } from '@/lib/products';
-import { builderAddons, addonAvailability, addonBySlug, familyFromSlug, PlanFamily } from '@/lib/addons';
+import { builderAddons, addonAvailability, familyFromSlug, planById, normaliseAddonIds, buildOrderLink, PlanFamily } from '@/lib/addons';
+import { readAddonUrl, writeAddonUrl } from '@/lib/addonUrl';
 import { homePayg, meteredTrunks, includedMinutes, formatMinutes } from '@/lib/pricing';
 import { CALL_RATE } from '@/lib/site';
-import { orderCartUrl } from '@/lib/whmcs';
 import { formatZAR } from '@/lib/format';
 import OrderButton from './OrderButton';
+import AddonToggles from './AddonToggles';
 import BusinessAccountsBlock from './BusinessAccountsBlock';
 
 type Family = PlanFamily;
@@ -66,29 +67,37 @@ export default function PlanBuilder() {
   const [pbxCalling, setPbxCalling] = useState(-1); // -1 = pay-as-you-go
   const [trunkIndex, setTrunkIndex] = useState(0);
   const [addonIds, setAddonIds] = useState<string[]>([]);
+  const [notices, setNotices] = useState<string[]>([]);
+  const touched = useRef(false); // the address is only rewritten after the visitor changes something
 
-  // Deep links: ?plan=business-line&addon=ivr,fax preselects the plan and its
-  // addons (only those that plan can take); #home-line etc. selects the plan.
-  // The ids themselves live on the comparison tables, so the browser handles
-  // the scroll; this only syncs the builder to the same family.
+  // Deep links: ?plan=line-800&addons=ivr,callblock restores the plan and its
+  // addons (only those the plan can take); the older ?plan=business-line
+  // selects a plan family; #home-line etc. selects the family too. The ids
+  // themselves live on the comparison tables, so the browser handles the
+  // scroll; this only syncs the builder.
   useEffect(() => {
-    const fromQuery = () => {
-      const params = new URLSearchParams(window.location.search);
-      const target = familyFromSlug(params.get('plan'));
-      if (!target) return;
+    const url = readAddonUrl();
+    const known = planById(url.plan);
+    let target: Family | null = known?.family ?? familyFromSlug(url.plan);
+    if (known) {
+      const id = known.plan.id;
+      if (known.family === 'home') {
+        setHomeKey(id === 'residential-200' ? 'Home 200' : id === 'residential-400' ? 'Home 400' : 'payg');
+        if (url.style === 'capped' || url.style === 'prepaid') setHomeStyle(url.style);
+      }
+      if (known.family === 'business') setLineIndex(Math.max(0, linePlans.findIndex((p) => p.id === id)));
+      if (known.family === 'pbx') setPbxIndex(Math.max(0, pbxTiers.findIndex((p) => p.id === id)));
+      if (known.family === 'trunk') setTrunkIndex(Math.max(0, meteredTrunks.findIndex((p) => p.id === id)));
+    }
+    if (target) {
       setFamily(target);
-      const wanted = (params.get('addon') ?? '')
-        .split(',')
-        .map((slug) => addonBySlug(slug.trim()))
-        .filter((addon): addon is NonNullable<typeof addon> => !!addon && addonAvailability(addon, target).state === 'available');
-      setAddonIds(wanted.map((addon) => addon.id));
-    };
+      setAddonIds(normaliseAddonIds(url.addonIds, target));
+    }
     const fromHash = () => {
       const hash = window.location.hash.replace('#', '');
       const match = FAMILIES.find((f) => f.hash === hash);
       if (match) setFamily(match.value);
     };
-    fromQuery();
     fromHash();
     window.addEventListener('hashchange', fromHash);
     return () => window.removeEventListener('hashchange', fromHash);
@@ -127,13 +136,10 @@ export default function PlanBuilder() {
     callingLine = `${formatMinutes(baseMinutes ?? 0)} minutes included every month`;
   }
 
-  // Toggles only for addons this plan can take: available ones switch on,
-  // included ones are shown as Included, and ones the billing system can't
-  // attach yet show Coming soon. Addons the plan can't have are hidden.
-  const addonRows = builderAddons
-    .map((addon) => ({ addon, ...addonAvailability(addon, family) }))
-    .filter((row) => row.state !== 'unavailable');
-  const selectedAddons = addonRows.filter((row) => row.state === 'available' && addonIds.includes(row.addon.id)).map((row) => row.addon);
+  // Only addons this plan can take are ever switched on (the toggles panel
+  // shows exactly those); anything else is dropped.
+  const selectedIds = normaliseAddonIds(addonIds, family);
+  const selectedAddons = builderAddons.filter((addon) => selectedIds.includes(addon.id));
   const setupTotal = selectedAddons.reduce((sum, addon) => sum + (addon.setupFeeZAR ?? 0), 0);
 
   const total = useMemo(
@@ -141,23 +147,41 @@ export default function PlanBuilder() {
     [base, trunkAddOn, selectedAddons],
   );
 
-  // One link carries everything selected: the plan, any calling capacity and
-  // any addons. Checkout opens with each item in the cart once.
-  // Addons are attached to the plan's own cart item, not added as products.
-  const cartUrl = orderCartUrl([
-    { product: base, addonIds: selectedAddons.map((addon) => addon.whmcsAddonId!) },
-    ...(trunkAddOn ? [trunkAddOn] : []),
-  ]);
+  // One link carries everything selected: the plan with its addons attached,
+  // and any calling capacity. Checkout opens with each item in the cart once.
+  const cartUrl = buildOrderLink(base, family, selectedIds, trunkAddOn ? [trunkAddOn] : []);
+
+  // Which plan the address should point at.
+  const planId =
+    family === 'home'
+      ? homeKey === 'payg' ? 'residential-payg' : homeKey === 'Home 200' ? 'residential-200' : 'residential-400'
+      : family === 'business' ? linePlans[lineIndex].id
+      : family === 'pbx' ? pbxTiers[pbxIndex].id
+      : meteredTrunks[trunkIndex].id;
+  const styleParam = family === 'home' && homeIsBundle ? homeStyle : null;
+  useEffect(() => {
+    if (touched.current) writeAddonUrl(planId, selectedIds, styleParam);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [planId, selectedIds.join(','), styleParam]);
+
   const familyInfo = FAMILIES.find((f) => f.value === family)!;
 
   function toggleAddon(id: string) {
+    touched.current = true;
+    setNotices([]);
     setAddonIds((prev) => (prev.includes(id) ? prev.filter((existing) => existing !== id) : [...prev, id]));
   }
 
   function changeFamily(next: Family) {
+    touched.current = true;
     setFamily(next);
-    // Drop toggles for addons the new plan can't take.
-    setAddonIds((prev) => prev.filter((id) => addonAvailability(builderAddons.find((a) => a.id === id)!, next).state === 'available'));
+    // Switch off addons the new plan can't take, and say why.
+    const dropped = selectedIds
+      .map((id) => builderAddons.find((a) => a.id === id)!)
+      .map((addon) => ({ addon, availability: addonAvailability(addon, next) }))
+      .filter(({ availability }) => availability.state !== 'available');
+    setNotices(dropped.map(({ availability }) => availability.reason ?? ''));
+    setAddonIds((prev) => normaliseAddonIds(prev, next));
   }
 
   const ivrNote =
@@ -199,7 +223,7 @@ export default function PlanBuilder() {
                 <p className="text-xs font-semibold uppercase tracking-wide text-navy-400">Plan</p>
                 <div role="group" aria-label="Plan" className="mt-2 flex flex-wrap gap-2">
                   {HOME_PLANS.map((plan) => (
-                    <button key={plan.key} type="button" aria-pressed={plan.key === homeKey} onClick={() => setHomeKey(plan.key)} className={chip(plan.key === homeKey)}>
+                    <button key={plan.key} type="button" aria-pressed={plan.key === homeKey} onClick={() => { touched.current = true; setHomeKey(plan.key); }} className={chip(plan.key === homeKey)}>
                       {plan.label}
                     </button>
                   ))}
@@ -211,7 +235,7 @@ export default function PlanBuilder() {
                   <p className="text-xs font-semibold uppercase tracking-wide text-navy-400">Choose your style</p>
                   <div role="group" aria-label="Choose your style" className="mt-2 flex flex-wrap gap-2">
                     {HOME_STYLES.map((style) => (
-                      <button key={style.value} type="button" aria-pressed={style.value === homeStyle} onClick={() => setHomeStyle(style.value)} className={chip(style.value === homeStyle)}>
+                      <button key={style.value} type="button" aria-pressed={style.value === homeStyle} onClick={() => { touched.current = true; setHomeStyle(style.value); }} className={chip(style.value === homeStyle)}>
                         {style.label}
                       </button>
                     ))}
@@ -227,7 +251,7 @@ export default function PlanBuilder() {
               <p className="text-xs font-semibold uppercase tracking-wide text-navy-400">Plan</p>
               <div role="group" aria-label="Plan" className="mt-2 flex flex-wrap gap-2">
                 {linePlans.map((plan, i) => (
-                  <button key={plan.id} type="button" aria-pressed={i === lineIndex} onClick={() => setLineIndex(i)} className={chip(i === lineIndex)}>
+                  <button key={plan.id} type="button" aria-pressed={i === lineIndex} onClick={() => { touched.current = true; setLineIndex(i); }} className={chip(i === lineIndex)}>
                     {plan.name}
                   </button>
                 ))}
@@ -244,7 +268,7 @@ export default function PlanBuilder() {
                 <p className="text-xs font-semibold uppercase tracking-wide text-navy-400">Seats</p>
                 <div role="group" aria-label="Seats" className="mt-2 flex flex-wrap gap-2">
                   {pbxTiers.map((tier, i) => (
-                    <button key={tier.id} type="button" aria-pressed={i === pbxIndex} onClick={() => setPbxIndex(i)} className={chip(i === pbxIndex)}>
+                    <button key={tier.id} type="button" aria-pressed={i === pbxIndex} onClick={() => { touched.current = true; setPbxIndex(i); }} className={chip(i === pbxIndex)}>
                       {tier.capacity.replace(' seats', '')}
                     </button>
                   ))}
@@ -273,7 +297,7 @@ export default function PlanBuilder() {
               <p className="text-xs font-semibold uppercase tracking-wide text-navy-400">Capacity</p>
               <div role="group" aria-label="Capacity" className="mt-2 flex flex-wrap gap-2">
                 {meteredTrunks.map((tier, i) => (
-                  <button key={tier.id} type="button" aria-pressed={i === trunkIndex} onClick={() => setTrunkIndex(i)} className={chip(i === trunkIndex)}>
+                  <button key={tier.id} type="button" aria-pressed={i === trunkIndex} onClick={() => { touched.current = true; setTrunkIndex(i); }} className={chip(i === trunkIndex)}>
                     {formatMinutes(includedMinutes(tier) ?? 0)} minutes
                   </button>
                 ))}
@@ -283,39 +307,7 @@ export default function PlanBuilder() {
           )}
 
           <div className="mt-6">
-            <p className="text-xs font-semibold uppercase tracking-wide text-navy-400">Addons</p>
-            <div className="mt-2 space-y-2">
-              {addonRows.map(({ addon, state }) => {
-                const active = addonIds.includes(addon.id);
-                return (
-                  <div key={addon.id} className={`flex items-center justify-between gap-3 rounded-xl border border-navy-900/10 px-4 py-2.5 text-sm ${state === 'soon' ? 'opacity-60' : ''}`}>
-                    <span className="text-navy-800">{addon.name}</span>
-                    {state === 'included' ? (
-                      <span className="rounded-full bg-signal-500/15 px-3 py-1 text-xs font-bold text-navy-900">Included</span>
-                    ) : state === 'soon' ? (
-                      <span className="text-xs font-semibold uppercase tracking-wide text-navy-400">Coming soon</span>
-                    ) : (
-                      <span className="flex items-center gap-2.5">
-                        <span className="text-right text-xs text-navy-400">
-                          +{formatZAR(addon.priceZAR ?? 0)}/mo
-                          {addon.setupFeeZAR ? <span className="block">+ {formatZAR(addon.setupFeeZAR)} once-off setup</span> : null}
-                        </span>
-                        <button
-                          type="button"
-                          role="switch"
-                          aria-checked={active}
-                          aria-label={`Toggle ${addon.name}`}
-                          onClick={() => toggleAddon(addon.id)}
-                          className={`relative h-6 w-11 flex-none rounded-full transition ${active ? 'bg-ember-500' : 'bg-navy-200'}`}
-                        >
-                          <span className={`absolute top-1 h-4 w-4 rounded-full bg-white transition-all ${active ? 'left-6' : 'left-1'}`} />
-                        </button>
-                      </span>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+            <AddonToggles family={family} selected={selectedIds} onToggle={toggleAddon} notices={notices} />
             {ivrNote && <p className="mt-2 text-xs text-navy-400">{ivrNote}</p>}
           </div>
         </div>

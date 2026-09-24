@@ -24,7 +24,13 @@ export default function AddonsExplorer() {
           onChange={(id) => setFamily(id as PlanFamily)}
         />
       </div>
-      <div className="mt-10 grid gap-6 md:grid-cols-2">
+      <p className="mt-5 text-center text-sm text-navy-700">
+        Already with Kiatri?{' '}
+        <a href="https://calling.kiatri.com/cart.php?gid=addons" className="font-semibold text-ember-600 hover:text-ember-500">
+          Add addons to your line from your client area →
+        </a>
+      </p>
+      <div className="mt-8 grid gap-6 md:grid-cols-2">
         {addons.map((addon) => (
           <AddonCard key={addon.id} addon={addon} family={family} />
         ))}

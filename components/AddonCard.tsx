@@ -1,29 +1,28 @@
-'use client';
-
-import { useState } from 'react';
 import { Addon } from '@/lib/products';
-import { addonAvailability, worksWith, slugFromFamily, labelFromFamily, PlanFamily } from '@/lib/addons';
+import { addonAvailability, worksWith, formatAddonPrice, labelFromFamily, PlanFamily } from '@/lib/addons';
 import { orderProductUrl } from '@/lib/whmcs';
 import { formatZAR } from '@/lib/format';
 import { CheckIcon, CheckCircleIcon, ClockIcon } from './icons';
-import CTAButton from './CTAButton';
 
-// Existing customers pick the addon from their own account: they log in and
-// only see the addons their service qualifies for.
-const EXISTING_CUSTOMER_URL = 'https://calling.kiatri.com/cart.php?gid=addons';
+// Where each plan's addons are switched on.
+const PLAN_SECTION: Record<PlanFamily, string> = {
+  home: '/voice#plans',
+  business: '/business#line',
+  pbx: '/business#cloud-pbx',
+  trunk: '/business#trunks',
+};
 
-// Deliberately its own component rather than reusing PricingCard — addons
-// have a shape PricingCard doesn't (a once-off setup fee, per-plan
-// availability, and an "Add to my plan" choice instead of a plain Order
-// button).
+// Information only: an addon is never ordered from here. It is switched on as
+// a toggle inside a plan that qualifies for it (plan cards on /voice and
+// /business, and the pricing builder). Deliberately its own component rather
+// than reusing PricingCard — addons have a shape PricingCard doesn't (a
+// once-off setup fee and per-plan availability).
 export default function AddonCard({ addon, family }: { addon: Addon; family: PlanFamily }) {
-  const [open, setOpen] = useState(false);
   const { state, reason } = addonAvailability(addon, family);
-  const planLabel = labelFromFamily(family);
   const isComingSoonAddon = addon.status === 'coming-soon';
   const dimmed = state === 'unavailable' || state === 'soon';
   const compatible = worksWith(addon);
-  const builderLink = `/pricing?plan=${slugFromFamily(family)}&addon=${addon.slug}#${slugFromFamily(family)}`;
+  const planLabel = labelFromFamily(family);
 
   return (
     <div
@@ -83,39 +82,17 @@ export default function AddonCard({ addon, family }: { addon: Addon; family: Pla
           Notify me
         </span>
       ) : state === 'available' ? (
-        <div className="mt-6">
-          <button
-            type="button"
-            aria-expanded={open}
-            onClick={() => setOpen((v) => !v)}
-            className="flex min-h-[44px] w-full items-center justify-center rounded-full border border-navy-900/15 px-6 py-3 text-sm font-semibold text-navy-900 transition hover:border-navy-900/40"
-          >
-            Add to my plan
-          </button>
-          {open && (
-            <div className="mt-3 space-y-4 rounded-xl border border-navy-900/10 bg-navy-100/40 p-4">
-              <div>
-                <p className="text-sm font-bold text-navy-900">Already a Kiatri customer?</p>
-                <CTAButton href={EXISTING_CUSTOMER_URL} external variant="ghost" size="sm" className="mt-2 w-full">
-                  Add to my existing line
-                </CTAButton>
-              </div>
-              <div>
-                <p className="text-sm font-bold text-navy-900">New to Kiatri?</p>
-                <CTAButton href={builderLink} size="sm" className="mt-2 w-full">
-                  Choose a plan with this addon
-                </CTAButton>
-              </div>
-            </div>
-          )}
-        </div>
+        <a href={PLAN_SECTION[family]} className="mt-6 inline-block text-sm font-semibold text-ember-600 hover:text-ember-500">
+          Add it when you choose your plan →
+        </a>
       ) : null}
 
-      {addon.slug === 'fax' && (
+      {addon.slug === 'fax' && addon.whmcsPid && (
+        // The only addon that is also sold on its own.
         <p className="mt-4 text-xs text-navy-700">
           Only need fax?{' '}
-          <a href={orderProductUrl(13)} className="font-semibold text-ember-600 hover:text-ember-500">
-            Get Virtual Fax on its own
+          <a href={orderProductUrl(addon.whmcsPid)} className="font-semibold text-ember-600 hover:text-ember-500">
+            Get Virtual Fax on its own →
           </a>
         </p>
       )}
