@@ -8,7 +8,7 @@ const cases: [string, ReturnType<typeof buildOrderLink>, string | null][] = [
   ['home + fax (refused)',        buildOrderLink(pid(4), 'home', [FAX]), null],
   ['trunk + callblock (refused)', buildOrderLink(pid(26), 'trunk', [CB]), null],
   ['trunk + ivr (refused)',       buildOrderLink(pid(26), 'trunk', [IVR]), null],
-  ['trunk + fax (soon, refused)', buildOrderLink(pid(26), 'trunk', [FAX]), null],
+  ['trunk + fax (works)',          buildOrderLink(pid(26), 'trunk', [FAX]), 'https://calling.kiatri.com/kiatri-cart.php?items=pid:26[addons:6]&cycle=monthly'],
   ['pbx + callblock (soon, refused)', buildOrderLink(bid(2), 'pbx', [CB]), null],
   ['pbx + fax (soon, refused)',   buildOrderLink(bid(2), 'pbx', [FAX]), null],
   ['business + callblock + ivr + fax', buildOrderLink(pid(10), 'business', [FAX, IVR, CB]), 'https://calling.kiatri.com/kiatri-cart.php?items=pid:10[addons:4,5,6]&cycle=monthly'],

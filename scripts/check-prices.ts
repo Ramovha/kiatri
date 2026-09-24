@@ -172,6 +172,12 @@ function compare(what: string, site: number | undefined, billing: number | undef
   if (site === undefined || billing === undefined || Math.abs(site - billing) > 0.004) diffs.push({ what, site: zar(site), billing: zar(billing) });
 }
 
+// A rate quoted only in a billing product's description text: shown as a
+// warning, because customers see the site's price, not this text.
+function warnRate(what: string, site: number, billing: number) {
+  if (Math.abs(site - billing) > 0.004) notes.push(`⚠ ${what}: site ${zar(site)}, billing text ${zar(billing)}`);
+}
+
 function compareAll(b: Billing) {
   const sitePids = new Set<number>(); // products the site actually sells
   const prod = (pid: number | undefined, label: string, site: { priceZAR?: number }, once = false, siteSetup = 0) => {
@@ -195,6 +201,10 @@ function compareAll(b: Billing) {
     compare(`${p.name} (bid ${p.whmcsBid}) setup`, 0, bundle?.setup);
   }
   for (const t of callCenterTiers) {
+    if (t.priceZAR === undefined) {
+      notes.push(`· ${t.name}: price on hold on the site (billing totals R${(b.bundles[t.whmcsBid]?.monthly ?? 0).toFixed(2)})`);
+      continue;
+    }
     compare(`${t.name} (bid ${t.whmcsBid}) monthly total`, t.priceZAR, b.bundles[t.whmcsBid]?.monthly);
   }
   for (const a of addons) {
@@ -222,7 +232,7 @@ function compareAll(b: Billing) {
     const m = p.desc.match(/R(\d+[.,]\d+)\/min/);
     if (m) rates.set(pid, [Number(m[1].replace(',', '.'))]);
   }
-  Array.from(rates.entries()).forEach(([pid, [rate]]) => compare(`Call rate quoted in billing product "${b.products[Number(pid)].name}" (pid ${pid})`, siteRate, rate));
+  Array.from(rates.entries()).forEach(([pid, [rate]]) => warnRate(`Call rate quoted in billing product "${b.products[Number(pid)].name}" (pid ${pid})`, siteRate, rate));
 }
 
 // ---- addon attachment check ---------------------------------------------------

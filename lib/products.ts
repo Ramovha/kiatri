@@ -667,7 +667,9 @@ export interface CallCenterTier {
   id: string;
   name: string;
   tagline: string;
-  priceZAR: number;
+  // Left out while the final price is being confirmed with billing: the card
+  // then says "Talk to us" and can't be ordered.
+  priceZAR?: number;
   priceNote: string;
   // The Cloud PBX tier inside the bundle — its included minutes are the
   // bundle's included minutes (confirmed against the bundle's cart lines).
@@ -698,8 +700,8 @@ export const callCenterTiers: CallCenterTier[] = [
     id: 'call-center-pro',
     name: 'Call Center Pro',
     tagline: 'A complete 25-seat call centre for growing teams.',
-    // PBX 25 (R2,560) + Pro (R299 × 25 agents = R7,475) = R10,035.
-    priceZAR: 10035,
+    // Price on hold until billing and the site agree (billing currently totals
+    // R10,036). Set priceZAR here once confirmed; the price check then compares it.
     priceNote: 'Includes PBX 25 (25 seats) + Call Center Pro',
     pbxTierId: 'pbx-25',
     features: ['Everything in Essentials, for 25 seats'],

@@ -7,11 +7,12 @@ import { formatZAR } from '@/lib/format';
 import { SITE_URL, SITE_NAME, SUPPORT_EMAIL } from '@/lib/site';
 
 const essentials = callCenterTiers.find((tier) => tier.id === 'call-center-essentials')!;
+const essentialsPrice = essentials.priceZAR!;
 
 const PAGE_URL = `${SITE_URL}/call-center`;
 const TITLE = 'Call Centre Software South Africa | Cloud Call Center | Kiatri';
 // "R2 530" — South African thousands grouping.
-const fromPrice = `R${essentials.priceZAR.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ')}`;
+const fromPrice = `R${essentialsPrice.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ')}`;
 const DESCRIPTION = `Cloud call centre software for South African businesses. Call queues, IVR and call recording with a 10 or 25-seat phone system. Plans from ${fromPrice}/month.`;
 const OG_ALT = 'Kiatri cloud call centre software for South African teams';
 
@@ -49,7 +50,7 @@ const STRUCTURED_DATA = [
       { '@type': 'ListItem', position: 2, name: 'Call Center', item: PAGE_URL },
     ],
   },
-  ...callCenterTiers.map((tier) => ({
+  ...callCenterTiers.filter((tier) => typeof tier.priceZAR === 'number').map((tier) => ({
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: `Kiatri ${tier.name}`,
@@ -57,11 +58,11 @@ const STRUCTURED_DATA = [
     brand: { '@type': 'Brand', name: SITE_NAME },
     offers: {
       '@type': 'Offer',
-      price: tier.priceZAR,
+      price: tier.priceZAR!,
       priceCurrency: 'ZAR',
       availability: 'https://schema.org/InStock',
       url: `${PAGE_URL}#plans`,
-      priceSpecification: { '@type': 'UnitPriceSpecification', price: tier.priceZAR, priceCurrency: 'ZAR', unitCode: 'MON' },
+      priceSpecification: { '@type': 'UnitPriceSpecification', price: tier.priceZAR!, priceCurrency: 'ZAR', unitCode: 'MON' },
     },
   })),
 ];
@@ -84,7 +85,7 @@ export default function CallCenterPage() {
         headlineAccent="South African teams"
         description="Queues, IVR and call recording on a cloud phone system, ready to take calls from day one. Priced as one simple monthly plan."
         priceLabel="Plans from"
-        priceValue={formatZAR(essentials.priceZAR)}
+        priceValue={formatZAR(essentialsPrice)}
         priceSuffix="/month"
         ctaLabel="See plans"
         ctaHref="#plans"

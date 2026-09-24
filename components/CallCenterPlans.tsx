@@ -43,10 +43,14 @@ function PlanCard({ tier, highlight }: { tier: CallCenterTier; highlight: boolea
       <h3 className="text-lg font-bold text-navy-900">{tier.name}</h3>
       <p className="mt-1 text-sm text-navy-700">{tier.tagline}</p>
 
-      <div className="mt-4 flex items-baseline gap-1">
-        <span className="text-3xl font-extrabold text-navy-900">{formatZAR(tier.priceZAR)}</span>
-        <span className="text-sm text-navy-700">/month</span>
-      </div>
+      {typeof tier.priceZAR === 'number' ? (
+        <div className="mt-4 flex items-baseline gap-1">
+          <span className="text-3xl font-extrabold text-navy-900">{formatZAR(tier.priceZAR)}</span>
+          <span className="text-sm text-navy-700">/month</span>
+        </div>
+      ) : (
+        <p className="mt-4 text-2xl font-extrabold text-navy-900">Talk to us</p>
+      )}
       <p className="mt-1 text-xs text-navy-700">{tier.priceNote}</p>
       {minutes && (
         <p className="mt-3 text-sm font-medium text-navy-900">
@@ -66,6 +70,12 @@ function PlanCard({ tier, highlight }: { tier: CallCenterTier; highlight: boolea
       </ul>
       {tier.footnote && <p className="mt-3 text-xs text-navy-700">{tier.footnote}</p>}
 
+      {typeof tier.priceZAR !== 'number' ? (
+        <CTAButton href="/contact?topic=call-center" variant={tier.popular ? 'primary' : 'ghost'} className="mt-6 w-full">
+          Talk to us
+        </CTAButton>
+      ) : (
+      <>
       {/* Same extras rules as Cloud PBX: IVR included, call blocking and fax as toggles. */}
       <AddonToggles family="pbx" selected={extras.selected} onToggle={extras.toggle} compact />
 
@@ -80,6 +90,8 @@ function PlanCard({ tier, highlight }: { tier: CallCenterTier; highlight: boolea
       >
         Order Now
       </OrderButton>
+      </>
+      )}
     </div>
   );
 }
