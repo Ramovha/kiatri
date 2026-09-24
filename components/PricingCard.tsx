@@ -58,7 +58,6 @@ export default function PricingCard({
           {plan.billingNote && (
             <p className="mt-1 text-xs font-medium text-ember-600">{plan.billingNote}</p>
           )}
-          <p className="mt-1 text-xs text-navy-400">Illustrative — see pricing page for details</p>
         </>
       ) : (
         <p className="mt-4 text-2xl font-extrabold text-navy-900">Talk to us</p>
@@ -97,7 +96,19 @@ export default function PricingCard({
         <p className="mt-4 text-xs text-navy-700">{plan.balanceNote}</p>
       )}
 
-      {plan.whmcsPid || plan.whmcsBid || plan.comingSoon ? (
+      {plan.orderStyles ? (
+        <div className="mt-6 space-y-3">
+          {plan.orderStyles.map((style) => (
+            <div key={style.label} className="rounded-xl border border-navy-900/10 p-3">
+              <p className="text-sm font-bold text-navy-900">{style.label}</p>
+              <p className="mt-0.5 text-xs text-navy-700">{style.description}</p>
+              <OrderButton plan={style} variant="ghost" className="mt-2 w-full">
+                Order {style.label}
+              </OrderButton>
+            </div>
+          ))}
+        </div>
+      ) : plan.whmcsPid || plan.whmcsBid || plan.comingSoon ? (
         <OrderButton
           plan={plan}
           cycle={isYearly ? 'annually' : 'monthly'}

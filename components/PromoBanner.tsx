@@ -68,7 +68,7 @@ export default function PromoBanner({
                   </p>
                 </div>
               </div>
-              <p className="mt-1.5 text-xs text-navy-400">{priceNote}</p>
+              {priceNote && <p className="mt-1.5 text-xs text-navy-400">{priceNote}</p>}
             </>
           )}
 
