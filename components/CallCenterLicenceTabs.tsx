@@ -7,6 +7,7 @@ import PillTabs from './PillTabs';
 import BillingPeriodToggle from './BillingPeriodToggle';
 import { BillingPeriod } from '@/lib/format';
 import { ClockIcon } from './icons';
+import { YEARLY_PRICING_BUNDLES } from '@/lib/site';
 
 type LicenceType = 'named' | 'usage' | 'concurrent';
 
@@ -43,13 +44,19 @@ function toUsageView(tier: CallCenterTier): CallCenterTier {
 // Hot Desking to ship first.
 export default function CallCenterLicenceTabs() {
   const [tab, setTab] = useState<LicenceType>('named');
-  const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>('monthly');
+  const [chosenPeriod, setBillingPeriod] = useState<BillingPeriod>('monthly');
+
+  // Yearly is only offered when every bundle on this page has an annual price
+  // in billing (see YEARLY_PRICING_BUNDLES); otherwise prices are monthly only.
+  const bundleIds = callCenterTiers.flatMap((tier) => [tier.whmcsBid, tier.usagePricing?.whmcsBid]).filter((id): id is number => typeof id === 'number');
+  const yearlyOffered = bundleIds.length > 0 && bundleIds.every((id) => YEARLY_PRICING_BUNDLES.includes(id));
+  const billingPeriod: BillingPeriod = yearlyOffered ? chosenPeriod : 'monthly';
 
   return (
     <div>
       <PillTabs options={LICENCE_TABS} activeId={tab} onChange={(id) => setTab(id as LicenceType)} />
 
-      {tab !== 'concurrent' && (
+      {tab !== 'concurrent' && yearlyOffered && (
         <div className="mt-6">
           <BillingPeriodToggle billingPeriod={billingPeriod} onChange={setBillingPeriod} />
         </div>

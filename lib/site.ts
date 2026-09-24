@@ -13,6 +13,13 @@ export const SITE_NAME = 'Kiatri';
 // this follows automatically.
 export const SUPPORT_EMAIL = `hello@${new URL(SITE_URL).hostname}`;
 
+// Bundles (bid) that have a real annual price in the billing system. The site
+// only offers a Yearly option for these. Empty for now: the Call Center and
+// PBX bundles have no annual cycle in billing yet. Add an id here together
+// with its yearly billing price; `npm run check:prices` then confirms billing
+// really has it.
+export const YEARLY_PRICING_BUNDLES: number[] = [];
+
 // Headline per-minute rate for South African calls. Defined once here and used
 // everywhere it appears in copy, so a rate change is a one-line edit.
 export const CALL_RATE = 'R0,80';

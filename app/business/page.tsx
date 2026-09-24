@@ -3,6 +3,7 @@ import PromoBanner from '@/components/PromoBanner';
 import PlanCategoryTabs, { PlanCategory } from '@/components/PlanCategoryTabs';
 import FeatureTabs, { FeatureTab } from '@/components/FeatureTabs';
 import BusinessAccountsBlock from '@/components/BusinessAccountsBlock';
+import PlanComparison from '@/components/PlanComparison';
 import { BrowserFrame, AppShot } from '@/components/voice/Frames';
 import { IllustrationCard, VoicemailIllustration } from '@/components/voice/Illustrations';
 import {
@@ -269,6 +270,20 @@ export default function BusinessPage() {
             </a>
             .
           </p>
+        </div>
+      </section>
+
+      {/* Static tables: every plan, price and included-minutes figure is real
+          HTML on first load, so search engines read all tabs, not just the
+          one that is open. */}
+      <section id="compare" className="scroll-mt-24 border-t border-navy-900/10 py-16">
+        <div className="mx-auto max-w-6xl px-6">
+          <h2 className="text-2xl font-bold text-navy-900">Compare business plans and prices</h2>
+          <PlanComparison
+            families={['business', 'trunk']}
+            idPrefix="compare-"
+            titles={{ business: 'Line Plans', trunk: 'SIP Trunk Plans' }}
+          />
         </div>
       </section>
 

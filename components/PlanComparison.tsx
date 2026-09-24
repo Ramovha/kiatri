@@ -61,7 +61,20 @@ const order = (plan: { whmcsPid?: number; whmcsBid?: number; comingSoon?: boolea
   <OrderButton plan={plan} url={orderCartUrl([plan])} size="sm" variant="ghost">{label}</OrderButton>
 );
 
-export default function PlanComparison() {
+type TableFamily = 'home' | 'business' | 'pbx' | 'trunk';
+
+// `families` picks which tables to show and `idPrefix` keeps their anchor ids
+// from clashing with other in-page ids (on /business the tab links already use
+// #cloud-pbx, #line and #trunks).
+export default function PlanComparison({
+  families = ['home', 'business', 'pbx', 'trunk'],
+  idPrefix = '',
+  titles = {},
+}: {
+  families?: TableFamily[];
+  idPrefix?: string;
+  titles?: Partial<Record<TableFamily, string>>;
+} = {}) {
   const homeRows: Row[] = [
     {
       key: 'home-payg',
@@ -117,12 +130,18 @@ export default function PlanComparison() {
     order: order(plan, 'Order'),
   }));
 
+  const tables: Record<TableFamily, { id: string; title: string; rows: Row[] }> = {
+    home: { id: 'home-line', title: 'Home Line', rows: homeRows },
+    business: { id: 'business-line', title: 'Business Line', rows: lineRows },
+    pbx: { id: 'cloud-pbx', title: 'Cloud PBX', rows: pbxRows },
+    trunk: { id: 'sip-trunk', title: 'SIP Trunk', rows: trunkRows },
+  };
+
   return (
     <div className="mt-8 space-y-10">
-      <FamilyTable id="home-line" title="Home Line" rows={homeRows} />
-      <FamilyTable id="business-line" title="Business Line" rows={lineRows} />
-      <FamilyTable id="cloud-pbx" title="Cloud PBX" rows={pbxRows} />
-      <FamilyTable id="sip-trunk" title="SIP Trunk" rows={trunkRows} />
+      {families.map((family) => (
+        <FamilyTable key={family} id={idPrefix + tables[family].id} title={titles[family] ?? tables[family].title} rows={tables[family].rows} />
+      ))}
     </div>
   );
 }

@@ -19,7 +19,7 @@
  * `fetchBilling()` are the only part that would change.
  */
 import { linePlans, pbxTiers, trunkPlans, residentialPlans, homeProducts, addons, phoneHardwareOptions, callCenterTiers } from '../lib/products';
-import { CALL_RATE } from '../lib/site';
+import { CALL_RATE, YEARLY_PRICING_BUNDLES } from '../lib/site';
 
 const BASE = process.env.BILLING_BASE_URL ?? 'https://calling.kiatri.com';
 const GROUPS = ['home-voice', 'connect-a-phone', 'business-line-plans', 'addons', 'sip-trunks'];
@@ -74,6 +74,7 @@ interface Price { monthly?: number; once?: number; setup: number }
 interface Billing {
   products: Record<number, Price & { name: string; desc: string }>;
   bundles: Record<number, Price>;
+  yearlyBundles: Record<number, boolean>; // bundle id -> billing really has an annual cycle
   addons: Record<number, Price & { name: string }>; // Product Addon id -> price
 }
 
@@ -101,7 +102,7 @@ function parseCart(html: string) {
 }
 
 async function fetchBilling(): Promise<Billing> {
-  const out: Billing = { products: {}, bundles: {}, addons: {} };
+  const out: Billing = { products: {}, bundles: {}, addons: {}, yearlyBundles: {} };
 
   for (const slug of GROUPS) {
     const html = await get(`/index.php?rp=/store/${slug}`, new Map());
@@ -120,6 +121,14 @@ async function fetchBilling(): Promise<Billing> {
     await get('/cart.php?a=add&bid=' + bid, jar);
     const lines = parseCart(await get('/cart.php?a=view', jar));
     out.bundles[bid] = { monthly: lines.reduce((n, l) => n + l.monthly, 0), setup: lines.reduce((n, l) => n + l.setup, 0) };
+  }
+
+  // Yearly: only for bundles the site offers a Yearly option on. Adding one
+  // with billingcycle=annually must produce Annually lines in the cart.
+  for (const bid of YEARLY_PRICING_BUNDLES) {
+    const jar: Jar = new Map();
+    await get(`/cart.php?a=add&bid=${bid}&billingcycle=annually`, jar);
+    out.yearlyBundles[bid] = /ZAR Annually/.test(text(await get('/cart.php?a=view', jar)));
   }
 
   // Product Addons: attach all of them to a business line and read the lines.
@@ -189,6 +198,13 @@ function compareAll(b: Billing) {
   // Virtual Fax is also sold on its own (pid 13).
   const fax = addons.find((a) => a.slug === 'fax');
   if (fax?.whmcsPid) prod(fax.whmcsPid, 'Virtual Fax (sold on its own)', fax);
+
+  // The site only offers Yearly where billing has an annual price.
+  for (const bid of YEARLY_PRICING_BUNDLES) {
+    compared++;
+    if (!b.yearlyBundles[bid]) diffs.push({ what: `Yearly offered on the site for bundle ${bid}`, site: 'Yearly', billing: 'no annual price' });
+  }
+  if (YEARLY_PRICING_BUNDLES.length === 0) notes.push('· yearly pricing: not offered on the site (YEARLY_PRICING_BUNDLES is empty)');
 
   // Call rate quoted in the billing system's own product descriptions.
   const siteRate = money(CALL_RATE.replace('R', '').replace(',', '.'));
