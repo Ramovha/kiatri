@@ -6,8 +6,8 @@ import { CheckIcon } from './icons';
 import CTAButton from './CTAButton';
 import OrderButton from './OrderButton';
 import AddonToggles from './AddonToggles';
-import { buildOrderLink, familyOfPlanId } from '@/lib/addons';
-import { usePlanAddons } from '@/lib/usePlanAddons';
+import { AddonLockNote, useAddonLock } from './AddonLock';
+import { buildOrderLink, familyOfPlanId, orderSummary } from '@/lib/addons';
 
 export default function PricingCard({
   plan,
@@ -21,12 +21,19 @@ export default function PricingCard({
   highlighted?: boolean;
 }) {
   const isYearly = billingPeriod === 'yearly';
-  // Addons this plan can take are switched on right here; the Order button
-  // carries them into the cart attached to the plan.
-  const family = familyOfPlanId(plan.id);
-  const addonsState = usePlanAddons(plan.id, family);
   const displayPriceZAR =
     typeof plan.priceZAR === 'number' && isYearly ? yearlyMonthlyEquivalent(plan.priceZAR) : plan.priceZAR;
+
+  // The addon lock: once an addon is selected, a plan that doesn't work with
+  // ALL selected addons is greyed out, can't be ordered, says why, and offers
+  // a "Remove <addon>" link. Otherwise the Order button carries the selected
+  // addons into the cart attached to this plan.
+  const lock = useAddonLock();
+  const family = familyOfPlanId(plan.id);
+  const blockers = family ? lock.blockers(family) : [];
+  const locked = blockers.length > 0;
+  const linkFor = (item: { whmcsPid?: number; whmcsBid?: number; comingSoon?: boolean }) =>
+    family && !locked ? buildOrderLink(item, family, lock.selected) : undefined;
 
   return (
     <div
@@ -34,112 +41,134 @@ export default function PricingCard({
         plan.popular || highlighted ? 'border-ember-500' : 'border-navy-900/10'
       } ${highlighted ? 'ring-2 ring-ember-500 ring-offset-2' : ''}`}
       data-highlighted={highlighted || undefined}
+      data-locked={locked || undefined}
+      data-plan={plan.id}
     >
       {highlighted && (
         <p className="mb-2 text-xs font-bold uppercase tracking-wide text-ember-600">Matches your team size</p>
       )}
-      {plan.popular && (
-        // A corner ribbon rather than an inline pill — "Most Popular" reads
-        // as genuinely more important than a muted "Coming soon" label, and
-        // being out-of-flow means it doesn't push this card's content down
-        // relative to its neighbors in the same row (the old inline badge did).
-        <div
-          className="absolute right-[-34px] top-[18px] w-[140px] rotate-45 bg-ember-500 py-1 text-center text-[10px] font-bold uppercase tracking-wider text-white shadow-sm"
-        >
-          Most Popular
-        </div>
-      )}
-      {plan.segment && (
-        <p className="text-xs font-semibold uppercase tracking-wide text-navy-400">{plan.segment}</p>
-      )}
-      <h3 className="text-lg font-bold text-navy-900">{plan.name}</h3>
-      <p className="mt-1 text-sm text-navy-700">{plan.tagline}</p>
-
-      {typeof displayPriceZAR === 'number' ? (
-        <>
-          <div className="mt-4 flex items-baseline gap-1">
-            <span className="text-3xl font-extrabold text-navy-900">{formatZAR(displayPriceZAR)}</span>
-            <span className="text-sm text-navy-700">/month</span>
-          </div>
-          {isYearly && <p className="mt-1 text-xs font-medium text-ember-600">Billed annually</p>}
-          {plan.billingNote && (
-            <p className="mt-1 text-xs font-medium text-ember-600">{plan.billingNote}</p>
-          )}
-        </>
-      ) : (
-        <p className="mt-4 text-2xl font-extrabold text-navy-900">Talk to us</p>
-      )}
-
-      <dl className="mt-5 grid grid-cols-2 gap-3 border-y border-navy-900/10 py-4 text-sm">
-        <div className={plan.hideCapacityRow ? 'col-span-2' : undefined}>
-          <dt className="text-navy-400">{plan.minutesLabel ?? 'Minutes'}</dt>
-          <dd className="font-medium text-navy-900">{plan.minutesIncluded}</dd>
-        </div>
-        {!plan.hideCapacityRow && (
-          <div>
-            <dt className="text-navy-400">{plan.capacityLabel ?? 'Capacity'}</dt>
-            <dd className="font-medium text-navy-900">{plan.capacity}</dd>
+      <div className={`flex flex-1 flex-col ${locked ? 'opacity-60' : ''}`}>
+        {plan.popular && (
+          // A corner ribbon rather than an inline pill — "Most Popular" reads
+          // as genuinely more important than a muted "Coming soon" label, and
+          // being out-of-flow means it doesn't push this card's content down
+          // relative to its neighbors in the same row (the old inline badge did).
+          <div
+            className="absolute right-[-34px] top-[18px] w-[140px] rotate-45 bg-ember-500 py-1 text-center text-[10px] font-bold uppercase tracking-wider text-white shadow-sm"
+          >
+            Most Popular
           </div>
         )}
-        {plan.overageNote && (
-          <div className="col-span-2">
-            <dt className="sr-only">Beyond your included minutes</dt>
-            <dd className="text-xs leading-snug text-navy-700">{plan.overageNote}</dd>
-          </div>
+        {plan.segment && (
+          <p className="text-xs font-semibold uppercase tracking-wide text-navy-400">{plan.segment}</p>
         )}
-        <div className="col-span-2">
-          <dt className="text-navy-400">Number</dt>
-          <dd className="font-medium text-navy-900">{plan.didIncluded}</dd>
-        </div>
-      </dl>
+        <h3 className="text-lg font-bold text-navy-900">{plan.name}</h3>
+        <p className="mt-1 text-sm text-navy-700">{plan.tagline}</p>
 
-      <ul className="mt-5 flex-1 space-y-2.5 text-sm text-navy-800">
-        {plan.features.map((feature) => (
-          <li key={feature} className="flex items-start gap-2">
-            <CheckIcon className="mt-0.5 h-4 w-4 flex-none text-ember-500" />
-            <span>{feature}</span>
-          </li>
-        ))}
-      </ul>
-
-      {plan.balanceNote && (
-        <p className="mt-4 text-xs text-navy-700">{plan.balanceNote}</p>
-      )}
-
-      {family && <AddonToggles family={family} selected={addonsState.selected} onToggle={addonsState.toggle} compact />}
-
-      {plan.orderStyles ? (
-        <div className="mt-6 space-y-3">
-          {plan.orderStyles.map((style) => (
-            <div key={style.label} className="rounded-xl border border-navy-900/10 p-3">
-              <p className="text-sm font-bold text-navy-900">{style.label}</p>
-              <p className="mt-0.5 text-xs text-navy-700">{style.description}</p>
-              <OrderButton
-                plan={style}
-                url={family ? buildOrderLink(style, family, addonsState.selected) : undefined}
-                variant="ghost"
-                className="mt-2 w-full"
-              >
-                Order {style.label}
-              </OrderButton>
+        {typeof displayPriceZAR === 'number' ? (
+          <>
+            <div className="mt-4 flex items-baseline gap-1">
+              <span className="text-3xl font-extrabold text-navy-900">{formatZAR(displayPriceZAR)}</span>
+              <span className="text-sm text-navy-700">/month</span>
             </div>
+            {isYearly && <p className="mt-1 text-xs font-medium text-ember-600">Billed annually</p>}
+            {plan.billingNote && (
+              <p className="mt-1 text-xs font-medium text-ember-600">{plan.billingNote}</p>
+            )}
+          </>
+        ) : (
+          <p className="mt-4 text-2xl font-extrabold text-navy-900">Talk to us</p>
+        )}
+
+        <dl className="mt-5 grid grid-cols-2 gap-3 border-y border-navy-900/10 py-4 text-sm">
+          <div className={plan.hideCapacityRow ? 'col-span-2' : undefined}>
+            <dt className="text-navy-400">{plan.minutesLabel ?? 'Minutes'}</dt>
+            <dd className="font-medium text-navy-900">{plan.minutesIncluded}</dd>
+          </div>
+          {!plan.hideCapacityRow && (
+            <div>
+              <dt className="text-navy-400">{plan.capacityLabel ?? 'Capacity'}</dt>
+              <dd className="font-medium text-navy-900">{plan.capacity}</dd>
+            </div>
+          )}
+          {plan.overageNote && (
+            <div className="col-span-2">
+              <dt className="sr-only">Beyond your included minutes</dt>
+              <dd className="text-xs leading-snug text-navy-700">{plan.overageNote}</dd>
+            </div>
+          )}
+          <div className="col-span-2">
+            <dt className="text-navy-400">Number</dt>
+            <dd className="font-medium text-navy-900">{plan.didIncluded}</dd>
+          </div>
+        </dl>
+
+        <ul className="mt-5 flex-1 space-y-2.5 text-sm text-navy-800">
+          {plan.features.map((feature) => (
+            <li key={feature} className="flex items-start gap-2">
+              <CheckIcon className="mt-0.5 h-4 w-4 flex-none text-ember-500" />
+              <span>{feature}</span>
+            </li>
           ))}
-        </div>
-      ) : plan.whmcsPid || plan.whmcsBid || plan.comingSoon ? (
-        <OrderButton
-          plan={plan}
-          url={family ? buildOrderLink(plan, family, addonsState.selected) : undefined}
-          cycle={isYearly ? 'annually' : 'monthly'}
-          variant={plan.popular ? 'primary' : 'ghost'}
-          className="mt-6 w-full"
-        >
-          {plan.ctaLabel ?? 'Order Now'}
-        </OrderButton>
-      ) : (
-        <CTAButton href={plan.ctaHref ?? '/contact'} variant={plan.popular ? 'primary' : 'ghost'} className="mt-6 w-full">
-          {plan.ctaLabel ?? 'Talk to us'}
-        </CTAButton>
-      )}
+        </ul>
+
+        {plan.balanceNote && (
+          <p className="mt-4 text-xs text-navy-700">{plan.balanceNote}</p>
+        )}
+
+        {family && (
+          <AddonToggles
+            family={family}
+            selected={lock.selected}
+            onToggle={(addonId) => lock.toggle(addonId, plan.id)}
+            disabled={locked}
+            compact
+          />
+        )}
+
+        {family && !locked && (plan.whmcsPid || plan.whmcsBid || plan.orderStyles) && (
+          <p data-testid="order-summary" className="mt-6 text-xs font-semibold text-navy-900">
+            {orderSummary(plan.name, family, lock.selected)}
+          </p>
+        )}
+
+        {plan.orderStyles ? (
+          <div className="mt-3 space-y-3">
+            {plan.orderStyles.map((style) => (
+              <div key={style.label} className="rounded-xl border border-navy-900/10 p-3">
+                <p className="text-sm font-bold text-navy-900">{style.label}</p>
+                <p className="mt-0.5 text-xs text-navy-700">{style.description}</p>
+                <OrderButton
+                  plan={style}
+                  url={linkFor(style)}
+                  locked={locked && !style.comingSoon}
+                  variant="ghost"
+                  className="mt-2 w-full"
+                >
+                  Order {style.label}
+                </OrderButton>
+              </div>
+            ))}
+          </div>
+        ) : plan.whmcsPid || plan.whmcsBid || plan.comingSoon ? (
+          <OrderButton
+            plan={plan}
+            url={linkFor(plan)}
+            locked={locked && !plan.comingSoon}
+            cycle={isYearly ? 'annually' : 'monthly'}
+            variant={plan.popular ? 'primary' : 'ghost'}
+            className="mt-3 w-full"
+          >
+            {plan.ctaLabel ?? 'Order Now'}
+          </OrderButton>
+        ) : (
+          <CTAButton href={plan.ctaHref ?? '/contact'} variant={plan.popular ? 'primary' : 'ghost'} className="mt-6 w-full">
+            {plan.ctaLabel ?? 'Talk to us'}
+          </CTAButton>
+        )}
+      </div>
+
+      {locked && <AddonLockNote blockers={blockers} className="mt-4" />}
     </div>
   );
 }

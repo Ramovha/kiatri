@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { pbxTiers, linePlans, homeProducts, HomeStyle } from '@/lib/products';
-import { builderAddons, addonAvailability, familyFromSlug, planById, normaliseAddonIds, buildOrderLink, PlanFamily } from '@/lib/addons';
+import { builderAddons, addonAvailability, familyFromSlug, planById, buildOrderLink, orderSummary, lockBlockers, PlanFamily } from '@/lib/addons';
 import { readAddonUrl, writeAddonUrl } from '@/lib/addonUrl';
 import { homePayg, meteredTrunks, includedMinutes, formatMinutes } from '@/lib/pricing';
 import { CALL_RATE } from '@/lib/site';
@@ -11,6 +11,7 @@ import { formatZAR } from '@/lib/format';
 import OrderButton from './OrderButton';
 import AddonToggles from './AddonToggles';
 import BusinessAccountsBlock from './BusinessAccountsBlock';
+import { AddonLockProvider, AddonLockBar, AddonLockNote, useAddonLock } from './AddonLock';
 
 type Family = PlanFamily;
 
@@ -56,18 +57,26 @@ interface Orderable {
 // Every price here is read from lib/products.ts — this is a different lens on the
 // same data, not new numbers.
 export default function PlanBuilder() {
+  return (
+    <AddonLockProvider>
+      <AddonLockBar />
+      <PlanBuilderInner />
+    </AddonLockProvider>
+  );
+}
+
+function PlanBuilderInner() {
+  const lock = useAddonLock();
   const [family, setFamily] = useState<Family>('pbx');
   const [homeKey, setHomeKey] = useState<(typeof HOME_PLANS)[number]['key']>('payg');
   const [homeStyle, setHomeStyle] = useState<HomeStyle>('prepaid');
   const [lineIndex, setLineIndex] = useState(0);
   const [pbxIndex, setPbxIndex] = useState(0);
   const [trunkIndex, setTrunkIndex] = useState(0);
-  const [addonIds, setAddonIds] = useState<string[]>([]);
-  const [notices, setNotices] = useState<string[]>([]);
   const touched = useRef(false); // the address is only rewritten after the visitor changes something
 
-  // Deep links: ?plan=line-800&addons=ivr,callblock restores the plan and its
-  // addons (only those the plan can take); the older ?plan=business-line
+  // Deep links: ?plan=line-800 restores the plan (the addons are restored by
+  // the addon lock, which also reads ?addons=); the older ?plan=business-line
   // selects a plan family; #home-line etc. selects the family too. The ids
   // themselves live on the comparison tables, so the browser handles the
   // scroll; this only syncs the builder.
@@ -85,10 +94,7 @@ export default function PlanBuilder() {
       if (known.family === 'pbx') setPbxIndex(Math.max(0, pbxTiers.findIndex((p) => p.id === id)));
       if (known.family === 'trunk') setTrunkIndex(Math.max(0, meteredTrunks.findIndex((p) => p.id === id)));
     }
-    if (target) {
-      setFamily(target);
-      setAddonIds(normaliseAddonIds(url.addonIds, target));
-    }
+    if (target) setFamily(target);
     const fromHash = () => {
       const hash = window.location.hash.replace('#', '');
       const match = FAMILIES.find((f) => f.hash === hash);
@@ -131,11 +137,25 @@ export default function PlanBuilder() {
     callingLine = `${formatMinutes(baseMinutes ?? 0)} minutes included every month`;
   }
 
-  // Only addons this plan can take are ever switched on (the toggles panel
-  // shows exactly those); anything else is dropped.
-  const selectedIds = normaliseAddonIds(addonIds, family);
-  const selectedAddons = builderAddons.filter((addon) => selectedIds.includes(addon.id));
+  // The addon lock: this plan is orderable only if it works with EVERY
+  // selected addon. Addons it merely includes (IVR on Cloud PBX) are shown as
+  // included and are not added to the cart or the total.
+  const selectedIds = lock.selected;
+  const blockers = lock.blockers(family);
+  const qualifies = blockers.length === 0;
+  const selectedAddons = builderAddons.filter((addon) => selectedIds.includes(addon.id) && addonAvailability(addon, family).state === 'available');
+  const includedAddons = builderAddons.filter((addon) => selectedIds.includes(addon.id) && addonAvailability(addon, family).state === 'included');
   const setupTotal = selectedAddons.reduce((sum, addon) => sum + (addon.setupFeeZAR ?? 0), 0);
+
+  // If the plan type on screen doesn't work with the selected addons (e.g. a
+  // shared link, or arriving from /addons with a different plan type in the
+  // address), move to the first plan type that does.
+  useEffect(() => {
+    if (selectedIds.length === 0 || lockBlockers(family, selectedIds).length === 0) return;
+    const next = (['business', 'home', 'pbx', 'trunk'] as Family[]).find((f) => lockBlockers(f, selectedIds).length === 0);
+    if (next) setFamily(next);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedIds.join(','), family]);
 
   const total = useMemo(
     () => (base.priceZAR ?? 0) + selectedAddons.reduce((sum, addon) => sum + (addon.priceZAR ?? 0), 0),
@@ -144,7 +164,8 @@ export default function PlanBuilder() {
 
   // One link carries the plan with its addons attached. Checkout opens with
   // each item in the cart once.
-  const cartUrl = buildOrderLink(base, family, selectedIds);
+  // Never built for a plan that doesn't work with the selected addons.
+  const cartUrl = qualifies ? buildOrderLink(base, family, selectedIds) : null;
 
   // Which plan the address should point at.
   const planId =
@@ -163,20 +184,15 @@ export default function PlanBuilder() {
 
   function toggleAddon(id: string) {
     touched.current = true;
-    setNotices([]);
-    setAddonIds((prev) => (prev.includes(id) ? prev.filter((existing) => existing !== id) : [...prev, id]));
+    lock.toggle(id, planId);
   }
 
   function changeFamily(next: Family) {
+    // Plan types that don't work with the selected addons are disabled, so
+    // this only ever moves to one that does.
+    if (lockBlockers(next, selectedIds).length > 0) return;
     touched.current = true;
     setFamily(next);
-    // Switch off addons the new plan can't take, and say why.
-    const dropped = selectedIds
-      .map((id) => builderAddons.find((a) => a.id === id)!)
-      .map((addon) => ({ addon, availability: addonAvailability(addon, next) }))
-      .filter(({ availability }) => availability.state !== 'available');
-    setNotices(dropped.map(({ availability }) => availability.reason ?? ''));
-    setAddonIds((prev) => normaliseAddonIds(prev, next));
   }
 
   const ivrNote =
@@ -192,22 +208,32 @@ export default function PlanBuilder() {
         <div className="p-6 sm:p-8">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-navy-400">What do you need?</p>
-            <div role="group" aria-label="What do you need?" className="mt-2 flex flex-wrap gap-2">
-              {FAMILIES.map((f) => (
-                <button
-                  key={f.value}
-                  type="button"
-                  aria-pressed={f.value === family}
-                  onClick={() => changeFamily(f.value)}
-                  className={`min-h-[44px] rounded-xl border px-4 py-2 text-sm font-semibold transition ${
-                    f.value === family
-                      ? 'border-navy-900 bg-navy-900 text-white'
-                      : 'border-navy-900/10 text-navy-700 hover:border-navy-900/30'
-                  }`}
-                >
-                  {f.label}
-                </button>
-              ))}
+            <div role="group" aria-label="What do you need?" className="mt-2 flex flex-wrap items-start gap-x-2 gap-y-3">
+              {FAMILIES.map((f) => {
+                // Plan types that don't work with the selected addons are greyed
+                // out and can't be chosen; the reason and a Remove link show below.
+                const familyBlockers = lockBlockers(f.value, selectedIds);
+                const familyLocked = familyBlockers.length > 0;
+                return (
+                  <div key={f.value} className="flex flex-col items-start gap-1.5">
+                    <button
+                      type="button"
+                      aria-pressed={f.value === family}
+                      disabled={familyLocked}
+                      data-locked={familyLocked || undefined}
+                      onClick={() => changeFamily(f.value)}
+                      className={`min-h-[44px] rounded-xl border px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${
+                        f.value === family
+                          ? 'border-navy-900 bg-navy-900 text-white'
+                          : 'border-navy-900/10 text-navy-700 hover:border-navy-900/30'
+                      }`}
+                    >
+                      {f.label}
+                    </button>
+                    {familyLocked && <AddonLockNote blockers={familyBlockers} className="max-w-[12rem]" />}
+                  </div>
+                );
+              })}
             </div>
             <p className="mt-3 text-sm text-navy-700">{familyInfo.tagline}</p>
           </div>
@@ -288,7 +314,7 @@ export default function PlanBuilder() {
           )}
 
           <div className="mt-6">
-            <AddonToggles family={family} selected={selectedIds} onToggle={toggleAddon} notices={notices} />
+            <AddonToggles family={family} selected={selectedIds} onToggle={toggleAddon} disabled={!qualifies} />
             {ivrNote && <p className="mt-2 text-xs text-navy-400">{ivrNote}</p>}
           </div>
         </div>
@@ -309,6 +335,12 @@ export default function PlanBuilder() {
                 <li key={addon.id} className="flex justify-between gap-4">
                   <span>{addon.name}</span>
                   <span>{formatZAR(addon.priceZAR ?? 0)}</span>
+                </li>
+              ))}
+              {includedAddons.map((addon) => (
+                <li key={addon.id} data-included className="flex justify-between gap-4">
+                  <span>{addon.name}</span>
+                  <span>Included</span>
                 </li>
               ))}
             </ul>
@@ -335,7 +367,10 @@ export default function PlanBuilder() {
           </div>
 
           <div className="mt-6 space-y-2">
-            <OrderButton plan={base} url={cartUrl} className="w-full">
+            <p data-testid="order-summary" className="text-center text-xs font-semibold text-white">
+              {orderSummary(base.name, family, selectedIds)}
+            </p>
+            <OrderButton plan={base} url={cartUrl} locked={!qualifies} className="w-full">
               Order {base.name}
             </OrderButton>
             <p className="pt-1 text-center text-[11px] text-navy-400">

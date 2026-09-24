@@ -1,16 +1,8 @@
 import { Addon } from '@/lib/products';
-import { addonAvailability, worksWith, formatAddonPrice, labelFromFamily, PlanFamily } from '@/lib/addons';
+import { addonAvailability, worksWith, labelFromFamily, slugFromFamily, PLAN_FAMILIES, PlanFamily } from '@/lib/addons';
 import { orderProductUrl } from '@/lib/whmcs';
 import { formatZAR } from '@/lib/format';
 import { CheckIcon, CheckCircleIcon, ClockIcon } from './icons';
-
-// Where each plan's addons are switched on.
-const PLAN_SECTION: Record<PlanFamily, string> = {
-  home: '/voice#plans',
-  business: '/business#line',
-  pbx: '/business#cloud-pbx',
-  trunk: '/business#trunks',
-};
 
 // Information only: an addon is never ordered from here. It is switched on as
 // a toggle inside a plan that qualifies for it (plan cards on /voice and
@@ -23,6 +15,11 @@ export default function AddonCard({ addon, family }: { addon: Addon; family: Pla
   const dimmed = state === 'unavailable' || state === 'soon';
   const compatible = worksWith(addon);
   const planLabel = labelFromFamily(family);
+  // Every plan type this addon can be switched on for. Each link opens the
+  // pricing builder with the addon selected and the lock on, so only plans
+  // that work with it can be ordered.
+  const types = addon.slug ? PLAN_FAMILIES.filter((f) => addonAvailability(addon, f.family).state === 'available') : [];
+  const linkFor = (f: PlanFamily) => `/pricing?addons=${addon.slug}#${slugFromFamily(f)}`;
 
   return (
     <div
@@ -81,10 +78,25 @@ export default function AddonCard({ addon, family }: { addon: Addon; family: Pla
         <span className="mt-6 flex w-full items-center justify-center rounded-full border border-navy-900/15 px-6 py-3 text-sm font-semibold text-navy-400">
           Notify me
         </span>
-      ) : state === 'available' ? (
-        <a href={PLAN_SECTION[family]} className="mt-6 inline-block text-sm font-semibold text-ember-600 hover:text-ember-500">
-          Add it when you choose your plan →
-        </a>
+      ) : state === 'available' && types.length > 0 ? (
+        types.length === 1 ? (
+          <a href={linkFor(types[0].family)} className="mt-6 inline-block text-sm font-semibold text-ember-600 hover:text-ember-500">
+            Add it when you choose your plan →
+          </a>
+        ) : (
+          <div className="mt-6 text-sm">
+            <p className="font-semibold text-navy-900">Add it when you choose your plan:</p>
+            <ul className="mt-1 flex flex-wrap gap-x-4 gap-y-1">
+              {types.map((f) => (
+                <li key={f.family}>
+                  <a href={linkFor(f.family)} className="font-semibold text-ember-600 hover:text-ember-500">
+                    {f.label} →
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )
       ) : null}
 
       {addon.slug === 'fax' && addon.whmcsPid && (

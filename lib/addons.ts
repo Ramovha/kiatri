@@ -129,14 +129,52 @@ interface OrderableLike {
   comingSoon?: boolean;
 }
 
+// ---- the addon lock -------------------------------------------------------
+
+// A plan family "works with" an addon when the addon can be switched on for it
+// or comes with it (Cloud PBX includes IVR). Anything else — not offered, or
+// coming soon — does not.
+export function worksWithAddon(addon: Addon, family: PlanFamily): boolean {
+  const { state } = addonAvailability(addon, family);
+  return state === 'available' || state === 'included';
+}
+
+// The selected addons a plan family cannot take. Empty = the plan is orderable.
+export function lockBlockers(family: PlanFamily, selectedIds: string[]): Addon[] {
+  return builderAddons.filter((addon) => selectedIds.includes(addon.id) && !worksWithAddon(addon, family));
+}
+
+export const planQualifies = (family: PlanFamily, selectedIds: string[]) => lockBlockers(family, selectedIds).length === 0;
+
+// "Virtual Receptionist (IVR), CallerID Block/Blacklist"
+export const addonNames = (addons: Addon[]) => addons.map((addon) => addon.name).join(', ');
+
+// "Your order: Line 800 + Virtual Receptionist (IVR)". An addon the plan
+// already includes is named as included, not added.
+export function orderSummary(planName: string, family: PlanFamily, selectedIds: string[]): string {
+  const parts = builderAddons
+    .filter((addon) => selectedIds.includes(addon.id))
+    .map((addon) => (addonAvailability(addon, family).state === 'included' ? `${shortAddonName(addon)} included` : addon.name));
+  return `Your order: ${[planName, ...parts].join(' + ')}`;
+}
+
 // THE one place an order link is built. A plan and the addons switched on for
 // it become one cart item: pid:<plan>[addons:<ids>]. Addons are never added
-// as products of their own. `extras` are further plain items in the same
-// order (e.g. calling capacity). Returns null when anything in the order has
-// no order link yet.
+// as products of their own, and an addon the plan already includes (IVR on
+// Cloud PBX) is not added at all. `extras` are further plain items in the same
+// order. SAFETY: refuses to build a link for a plan that doesn't work with a
+// selected addon — it logs an error and returns null, so the caller keeps the
+// button disabled. Returns null too when anything in the order has no order
+// link yet.
 export function buildOrderLink(plan: OrderableLike, family: PlanFamily, addonIds: string[], extras: OrderableLike[] = []): string | null {
-  const ids = normaliseAddonIds(addonIds, family)
-    .map((id) => addonById(id)?.whmcsAddonId)
+  const blockers = lockBlockers(family, addonIds);
+  if (blockers.length > 0) {
+    console.error(`buildOrderLink: ${labelFromFamily(family)} doesn't work with ${addonNames(blockers)}; not building a link.`);
+    return null;
+  }
+  const ids = builderAddons
+    .filter((addon) => addonIds.includes(addon.id) && addonAvailability(addon, family).state === 'available')
+    .map((addon) => addon.whmcsAddonId)
     .filter((id): id is number => typeof id === 'number');
   return orderCartUrl([{ product: plan, addonIds: ids }, ...extras]);
 }

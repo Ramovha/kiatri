@@ -20,6 +20,15 @@ export function readAddonUrl(): UrlSelection {
   return { plan: params.get('plan'), addonIds, style: params.get('style') };
 }
 
+// Removes the addon selection from the address (used when the page is
+// reloaded), keeping the plan, other parameters and the #hash.
+export function removeAddonParams() {
+  const params = new URLSearchParams(window.location.search);
+  ['addons', 'addon'].forEach((key) => params.delete(key));
+  const rest = params.toString();
+  window.history.replaceState(null, '', `${window.location.pathname}${rest ? '?' + rest : ''}${window.location.hash}`);
+}
+
 // Updates the address in place (no reload, no extra history entry), keeping
 // any other query parameters and the #hash.
 export function writeAddonUrl(plan: string, addonIds: string[], style?: string | null) {
