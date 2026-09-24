@@ -1,8 +1,8 @@
 import { Plan } from '@/lib/products';
-import { orderProductUrl } from '@/lib/whmcs';
 import { formatZAR, yearlyMonthlyEquivalent, BillingPeriod } from '@/lib/format';
 import { CheckIcon } from './icons';
 import CTAButton from './CTAButton';
+import OrderButton from './OrderButton';
 
 export default function PricingCard({
   plan,
@@ -97,15 +97,15 @@ export default function PricingCard({
         <p className="mt-4 text-xs text-navy-700">{plan.balanceNote}</p>
       )}
 
-      {plan.whmcsPid ? (
-        <CTAButton
-          href={orderProductUrl(plan.whmcsPid, isYearly ? 'annually' : 'monthly')}
-          external
+      {plan.whmcsPid || plan.whmcsBid || plan.comingSoon ? (
+        <OrderButton
+          plan={plan}
+          cycle={isYearly ? 'annually' : 'monthly'}
           variant={plan.popular ? 'primary' : 'ghost'}
           className="mt-6 w-full"
         >
           {plan.ctaLabel ?? 'Order Now'}
-        </CTAButton>
+        </OrderButton>
       ) : (
         <CTAButton href={plan.ctaHref ?? '/contact'} variant={plan.popular ? 'primary' : 'ghost'} className="mt-6 w-full">
           {plan.ctaLabel ?? 'Talk to us'}

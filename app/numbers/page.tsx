@@ -66,11 +66,6 @@ export default function NumbersPage() {
         <ul className="mt-3 space-y-2 text-sm text-navy-700">
           <li className="flex items-start gap-2">
             <CheckIcon className="mt-0.5 h-4 w-4 flex-none text-ember-500" />
-            Typical port timelines vary by your current provider — [REPLACE WITH REAL DATA: publish an actual
-            typical turnaround once you have enough completed ports to quote one honestly].
-          </li>
-          <li className="flex items-start gap-2">
-            <CheckIcon className="mt-0.5 h-4 w-4 flex-none text-ember-500" />
             Keep your existing service active until the port completes, to avoid a gap in service.
           </li>
           <li className="flex items-start gap-2">

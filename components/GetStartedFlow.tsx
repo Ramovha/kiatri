@@ -3,10 +3,11 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { residentialPlans, pbxTiers, trunkPlans, Plan } from '@/lib/products';
-import { orderProductUrl } from '@/lib/whmcs';
+import { planOrderUrl } from '@/lib/whmcs';
 import { formatZAR } from '@/lib/format';
 import { submitLead, LeadPayload } from '@/lib/leads';
 import CTAButton from './CTAButton';
+import OrderButton from './OrderButton';
 import { CheckIcon } from './icons';
 
 type Audience = 'personal' | 'business';
@@ -534,9 +535,9 @@ function PersonalResult({
       </p>
 
       <div className="mt-6 space-y-3">
-        <CTAButton href={orderProductUrl(plan.whmcsPid!)} external className="w-full">
+        <OrderButton plan={plan} className="w-full">
           Order Now
-        </CTAButton>
+        </OrderButton>
         <button
           type="button"
           onClick={onCallback}
@@ -598,12 +599,12 @@ function BusinessResult({
       </ul>
 
       <div className="mt-6 space-y-2">
-        <CTAButton href={orderProductUrl(plan.whmcsPid!)} external className="w-full">
+        <OrderButton plan={plan} className="w-full">
           Order {plan.name}
-        </CTAButton>
-        {secondPlan && (
+        </OrderButton>
+        {secondPlan && planOrderUrl(secondPlan) && (
           <a
-            href={orderProductUrl(secondPlan.whmcsPid!)}
+            href={planOrderUrl(secondPlan)!}
             className="block text-center text-xs font-semibold text-ember-600 hover:text-ember-500"
           >
             + Add {secondPlan.name} for calling capacity

@@ -4,7 +4,7 @@ import PlanCategoryTabs, { PlanCategory } from '@/components/PlanCategoryTabs';
 import PlanPicker from '@/components/PlanPicker';
 import CTAButton from '@/components/CTAButton';
 import FeatureTabs, { FeatureTab } from '@/components/FeatureTabs';
-import { ShieldIcon, HeadsetIcon, ServerRackIcon, CheckIcon } from '@/components/icons';
+import { HeadsetIcon, ServerRackIcon } from '@/components/icons';
 import { pbxTiers, trunkPlans, linePlans } from '@/lib/products';
 import { formatZAR } from '@/lib/format';
 
@@ -55,11 +55,6 @@ export const metadata: Metadata = {
 
 const PILLARS = [
   {
-    icon: ShieldIcon,
-    title: 'SLA-backed reliability',
-    description: '[REPLACE WITH REAL DATA — publish your actual SLA uptime commitment once finalized] with credits if we miss it.',
-  },
-  {
     icon: HeadsetIcon,
     title: 'Dedicated support contact',
     description: 'A named local support contact for your account, not a rotating ticket queue.',
@@ -69,12 +64,6 @@ const PILLARS = [
     title: 'Custom trunk sizing',
     description: 'Tell us your peak concurrent call volume and we’ll size channels and minutes to match — no guessing from a generic tier.',
   },
-];
-
-const INTEGRATIONS = [
-  '[REPLACE WITH REAL DATA — list actual supported CRM/helpdesk integrations]',
-  '[REPLACE WITH REAL DATA]',
-  '[REPLACE WITH REAL DATA]',
 ];
 
 const FEATURE_TABS: FeatureTab[] = [
@@ -145,7 +134,7 @@ export default function BusinessPage() {
 
       <section className="py-16">
         <div className="mx-auto max-w-6xl px-6">
-          <div className="grid gap-6 md:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-2">
             {PILLARS.map(({ icon: Icon, title, description }) => (
               <div key={title} className="rounded-2xl border border-navy-900/10 bg-white p-6 shadow-card">
                 <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-navy-900 text-white">
@@ -207,20 +196,6 @@ export default function BusinessPage() {
           <div className="mt-10">
             <FeatureTabs tabs={FEATURE_TABS} />
           </div>
-        </div>
-      </section>
-
-      <section className="py-16">
-        <div className="mx-auto max-w-6xl px-6">
-          <h2 className="text-2xl font-bold text-navy-900">Integrations</h2>
-          <ul className="mt-4 space-y-2 text-sm text-navy-700">
-            {INTEGRATIONS.map((item) => (
-              <li key={item} className="flex items-start gap-2">
-                <CheckIcon className="mt-0.5 h-4 w-4 flex-none text-ember-500" />
-                {item}
-              </li>
-            ))}
-          </ul>
         </div>
       </section>
 

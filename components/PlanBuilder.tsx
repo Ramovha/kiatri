@@ -2,9 +2,9 @@
 
 import { useMemo, useState } from 'react';
 import { pbxTiers, trunkPlans, linePlans, addons, Plan } from '@/lib/products';
-import { orderProductUrl } from '@/lib/whmcs';
+import { planOrderUrl } from '@/lib/whmcs';
 import { formatZAR } from '@/lib/format';
-import CTAButton from './CTAButton';
+import OrderButton from './OrderButton';
 
 type BaseType = 'pbx' | 'line' | 'trunk';
 
@@ -276,12 +276,12 @@ export default function PlanBuilder() {
         </div>
 
         <div className="mt-6 space-y-2">
-          <CTAButton href={orderProductUrl(base.whmcsPid!)} external className="w-full">
+          <OrderButton plan={base} className="w-full">
             Order {base.name}
-          </CTAButton>
-          {addOnTrunk && (
+          </OrderButton>
+          {addOnTrunk && planOrderUrl(addOnTrunk) && (
             <a
-              href={orderProductUrl(addOnTrunk.whmcsPid!)}
+              href={planOrderUrl(addOnTrunk)!}
               className="block text-center text-xs font-semibold text-signal-300 hover:text-signal-200"
             >
               + Add {addOnTrunk.name} in your cart
@@ -289,10 +289,10 @@ export default function PlanBuilder() {
           )}
           {selectedAddons.map(
             (addon) =>
-              addon.whmcsPid && (
+              planOrderUrl(addon) && (
                 <a
                   key={addon.id}
-                  href={orderProductUrl(addon.whmcsPid)}
+                  href={planOrderUrl(addon)!}
                   className="block text-center text-xs font-semibold text-signal-300 hover:text-signal-200"
                 >
                   + Add {addon.name} in your cart
