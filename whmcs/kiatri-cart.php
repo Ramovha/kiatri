@@ -15,7 +15,8 @@
  *
  * What it does: empties the visitor's cart, adds every item with monthly
  * billing using WHMCS's own add URLs (products with pid, bundles with bid),
- * then sends the visitor to checkout. The adds run in the visitor's own
+ * then sends the visitor to review their order (the Review & Checkout page,
+ * /cart.php?a=view). The adds run in the visitor's own
  * browser, sequentially, on this domain — so they share the visitor's cart
  * session, come from the visitor's own IP, and go through exactly the same
  * WHMCS code path as clicking "Order" on each product by hand.
@@ -115,7 +116,7 @@ $payload = json_encode(
   <div id="working">
     <div class="spin" aria-hidden="true"></div>
     <h1 style="font-size:1.25rem;margin:0 0 .5rem">Setting up your order</h1>
-    <p style="margin:0;color:#3B4A63">One moment. We're adding your items and taking you to checkout.</p>
+    <p style="margin:0;color:#3B4A63">One moment. We're adding your items and taking you to review your order.</p>
   </div>
   <div id="problem" hidden>
     <h1 style="font-size:1.25rem;margin:0 0 .5rem">We couldn't finish setting up your order</h1>
@@ -129,7 +130,6 @@ $payload = json_encode(
 <script>
 (function () {
   var cfg = <?= $payload ?>;
-  var CHECKOUT = '/cart.php?a=checkout';
   var CART = '/cart.php?a=view';
   var STORE = 'kiatriCart:' + cfg.key;
 
@@ -151,7 +151,7 @@ $payload = json_encode(
 
     // A reload within a minute must not add everything a second time.
     if (recent && Date.now() - recent.at < 60000) {
-      location.replace(recent.configUrl || CHECKOUT);
+      location.replace(recent.configUrl || CART);
       return;
     }
 
@@ -169,7 +169,7 @@ $payload = json_encode(
     }
 
     try { sessionStorage.setItem(STORE, JSON.stringify({ at: Date.now(), configUrl: configUrl })); } catch (e) {}
-    location.replace(configUrl || CHECKOUT);
+    location.replace(configUrl || CART);
   }
 
   run().catch(fail);
