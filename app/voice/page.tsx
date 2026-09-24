@@ -10,7 +10,7 @@ import { formatZAR } from '@/lib/format';
 import { SITE_URL, SITE_NAME, SUPPORT_EMAIL, CALL_RATE } from '@/lib/site';
 
 // Two top-level tabs live in VoiceTabsSection: Residential (the app-based
-// plans — calling, video and messaging from the Kiatri app, no hardware
+// plans — calling and messaging from the Kiatri app, no hardware
 // required) and Connect a Phone (for people who want a cordless handset
 // instead — one option available today, two Coming Soon). Deliberately no
 // business jargon (seats/channels/PBX/trunk) anywhere on this page.
@@ -56,7 +56,7 @@ const PILLARS = [
   {
     icon: MapPinIcon,
     title: 'Keep your number',
-    description: 'Bring your existing number across — porting is free on every plan.',
+    description: 'Bring your existing number across.',
   },
 ];
 
@@ -72,7 +72,7 @@ const FAQS = [
   },
   {
     question: 'Can I keep my existing home number?',
-    answer: 'Yes. You can port your current South African number to Kiatri, and porting is free on every plan.',
+    answer: 'Yes. You can bring your existing South African number across to Kiatri, or choose a new local number.',
   },
   {
     question: 'What is the difference between Prepaid and Capped?',
@@ -156,7 +156,7 @@ export default function VoicePage() {
         eyebrow="Home Voice"
         headlineLead="A home phone line,"
         headlineAccent="made easy."
-        description="Call, video, and message from our app — or connect your own cordless phone. Real local numbers, no jargon, no lock-in."
+        description="Call and message from our app — or connect your own cordless phone. Real local numbers, no jargon, no lock-in."
         priceLabel="Home plans start from"
         priceValue={formatZAR(cheapest)}
         priceSuffix="/month line fee"

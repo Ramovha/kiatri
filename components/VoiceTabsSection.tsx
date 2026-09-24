@@ -33,6 +33,7 @@ const homePlans = residentialPlans.filter((plan) => plan.id !== 'residential-unl
 const ALT = {
   app: 'Kiatri calling app on desktop and mobile phone',
   dialer: 'Kiatri dialer screen on a mobile phone',
+  history: 'Kiatri call history screen on a mobile phone',
   voicemail: 'Voicemail delivered to email as an audio file',
   callerId: 'Incoming call showing caller ID on the Kiatri app',
   porting: 'Porting an existing South African number to Kiatri',
@@ -47,6 +48,7 @@ const ALT = {
 function residentialTabs(images: AppImages): FeatureTab[] {
   const desktop = images['desktop-app'];
   const dialer = images['mobile-dialer'];
+  const history = images['mobile-call-history'];
   const incoming = images['mobile-incoming-call'];
 
   return [
@@ -60,6 +62,12 @@ function residentialTabs(images: AppImages): FeatureTab[] {
       visual: (
         <div className="relative pb-8 pr-[6%]">
           <LaptopFrame>{desktop ? <AppShot image={desktop} alt={ALT.app} /> : <AppDesktopScreen label={ALT.app} />}</LaptopFrame>
+          {/* Call history sits beside the dialer once its screenshot has been added. */}
+          {history && (
+            <PhoneFrame className="absolute bottom-3 right-[25%] w-[22%] min-w-[70px]">
+              <AppShot image={history} alt={ALT.history} />
+            </PhoneFrame>
+          )}
           <PhoneFrame className="absolute bottom-0 right-0 w-[24%] min-w-[76px]">
             {dialer ? <AppShot image={dialer} alt={ALT.dialer} /> : <AppDialerScreen label={ALT.dialer} />}
           </PhoneFrame>
@@ -95,7 +103,7 @@ function residentialTabs(images: AppImages): FeatureTab[] {
       label: 'Keep Your Number',
       title: 'Bring your number with you',
       description: 'Switch to Kiatri and keep the number your family and friends already know.',
-      bullets: ['Free porting on every plan', 'No downtime during the switch'],
+      bullets: ['Bring your existing number across', 'No downtime during the switch'],
       link: { href: '/numbers', label: 'Numbers & porting →' },
       visual: (
         <IllustrationCard>
@@ -165,7 +173,7 @@ export default function VoiceTabsSection({ images }: { images: AppImages }) {
       {tab === 'residential' ? (
         <>
           <p className="mx-auto mt-6 max-w-2xl text-center text-navy-700">
-            Call, video, and message straight from our app — no hardware required. Simple plans, priced
+            Call and message straight from our app — no hardware required. Simple plans, priced
             honestly.
           </p>
           <div className="mx-auto mt-8 grid max-w-5xl gap-6 md:grid-cols-3">

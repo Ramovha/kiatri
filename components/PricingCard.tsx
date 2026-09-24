@@ -36,12 +36,10 @@ export default function PricingCard({
         // relative to its neighbors in the same row (the old inline badge did).
         <div
           className="absolute right-[-34px] top-[18px] w-[140px] rotate-45 bg-ember-500 py-1 text-center text-[10px] font-bold uppercase tracking-wider text-white shadow-sm"
-          aria-hidden
         >
           Most Popular
         </div>
       )}
-      {plan.popular && <span className="sr-only">Most popular</span>}
       {plan.segment && (
         <p className="text-xs font-semibold uppercase tracking-wide text-navy-400">{plan.segment}</p>
       )}
