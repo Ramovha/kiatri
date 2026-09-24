@@ -53,10 +53,14 @@ const ELIGIBILITY: Record<string, Record<PlanFamily, Eligibility>> = {
 // attach it to their PBX product. `npm run check:prices` adds every offered
 // combination to a live cart and fails if billing does not attach it, so a
 // toggle can never be shown for a product that can't take it.
+// Confirmed against live billing: call blocking on Home and Business Line, IVR
+// on Business Line, fax on Business Line and the Metro trunks. Cloud PBX and
+// Call Center (bundles) are added here ('pbx') once billing attaches call
+// blocking and fax to the PBX products — `npm run check:prices` says when.
 const ATTACHABLE: Record<string, PlanFamily[]> = {
-  'addon-callerid-block': ['home', 'business', 'pbx'],
+  'addon-callerid-block': ['home', 'business'],
   'addon-virtual-receptionist': ['business'],
-  'addon-virtual-fax': ['business', 'pbx', 'trunk'],
+  'addon-virtual-fax': ['business', 'trunk'],
 };
 
 // Short names used in sentences ("IVR isn't available on Home plans.").
