@@ -20,6 +20,7 @@
  */
 import { linePlans, pbxTiers, trunkPlans, residentialPlans, homeProducts, addons, phoneHardwareOptions, callCenterTiers } from '../lib/products';
 import { CALL_RATE, YEARLY_PRICING_BUNDLES } from '../lib/site';
+import { addonAvailability, builderAddons, PlanFamily } from '../lib/addons';
 
 const BASE = process.env.BILLING_BASE_URL ?? 'https://calling.kiatri.com';
 const GROUPS = ['home-voice', 'connect-a-phone', 'business-line-plans', 'addons', 'sip-trunks'];
@@ -41,7 +42,7 @@ async function get(path: string, jar: Jar, hops = 15): Promise<string> {
     const res = await fetch(url, {
       redirect: 'manual',
       headers: { cookie: Array.from(jar.entries()).map(([k, v]) => `${k}=${v}`).join('; '), 'user-agent': 'kiatri-price-check' },
-      signal: AbortSignal.timeout(20000),
+      signal: AbortSignal.timeout(60000),
     });
     for (const c of res.headers.getSetCookie()) {
       const [kv] = c.split(';');
@@ -56,6 +57,18 @@ async function get(path: string, jar: Jar, hops = 15): Promise<string> {
     return res.text();
   }
   throw new Error('too many redirects for ' + path);
+}
+
+async function post(path: string, body: string, jar: Jar): Promise<string> {
+  const url = path.startsWith('http') ? path : BASE + path;
+  const res = await fetch(url, {
+    method: 'POST',
+    redirect: 'manual',
+    body,
+    headers: { cookie: Array.from(jar.entries()).map(([k, v]) => `${k}=${v}`).join('; '), 'content-type': 'application/x-www-form-urlencoded', 'user-agent': 'kiatri-price-check' },
+    signal: AbortSignal.timeout(60000),
+  });
+  return res.text();
 }
 
 const text = (html: string) =>
@@ -217,6 +230,94 @@ function compareAll(b: Billing) {
   Array.from(rates.entries()).forEach(([pid, [rate]]) => compare(`Call rate quoted in billing product "${b.products[Number(pid)].name}" (pid ${pid})`, siteRate, rate));
 }
 
+// ---- addon attachment check ---------------------------------------------------
+// Every plan + addon combination the site offers as a toggle is added to a live
+// cart, and billing must attach it to that plan. Products take the addon on the
+// add link; a bundle's addon attaches to its PBX product by submitting that
+// cart item's configure form — exactly what whmcs/kiatri-cart.php does.
+// Keep these in step with BUNDLE_PBX_TITLE in whmcs/kiatri-cart.php.
+const BUNDLE_PBX_TITLE: Record<number, string> = { 1: 'PBX 5', 2: 'PBX 10', 3: 'PBX 25', 4: 'PBX 50', 5: 'PBX 10', 6: 'PBX 25' };
+
+interface Combo { label: string; family: PlanFamily; pid?: number; bid?: number; addonId: number; addonName: string }
+
+function offeredCombos(): Combo[] {
+  const plans: { label: string; family: PlanFamily; pid?: number; bid?: number }[] = [
+    // Home 200/400 are ordered through their Prepaid style (a product of its own).
+    ...residentialPlans.flatMap((p) => {
+      const pid = p.whmcsPid ?? p.orderStyles?.find((style) => style.whmcsPid)?.whmcsPid;
+      return pid ? [{ label: p.name, family: 'home' as const, pid }] : [];
+    }),
+    ...linePlans.map((p) => ({ label: p.name === 'Pay-As-You-Go' ? 'Business Line Pay-As-You-Go' : p.name, family: 'business' as const, pid: p.whmcsPid })),
+    ...pbxTiers.map((p) => ({ label: p.name, family: 'pbx' as const, bid: p.whmcsBid })),
+    ...callCenterTiers.filter((t) => t.whmcsBid).map((t) => ({ label: t.name, family: 'pbx' as const, bid: t.whmcsBid })),
+    ...trunkPlans.filter((p) => p.whmcsPid).map((p) => ({ label: p.name, family: 'trunk' as const, pid: p.whmcsPid })),
+  ];
+  const combos: Combo[] = [];
+  for (const plan of plans) {
+    for (const addon of builderAddons) {
+      if (addonAvailability(addon, plan.family).state === 'available' && addon.whmcsAddonId) {
+        combos.push({ ...plan, addonId: addon.whmcsAddonId, addonName: addon.name });
+      }
+    }
+  }
+  return combos;
+}
+
+async function attaches(c: Combo): Promise<string | null> {
+  const jar: Jar = new Map();
+  const wanted = `${c.addonName} Addon`;
+  if (c.pid !== undefined) {
+    await get(`/cart.php?a=add&pid=${c.pid}&billingcycle=monthly&skipconfig=1&addons%5B${c.addonId}%5D=on`, jar);
+  } else {
+    await get(`/cart.php?a=add&bid=${c.bid}`, jar);
+    const view = await get('/cart.php?a=view', jar);
+    const title = BUNDLE_PBX_TITLE[c.bid!];
+    const found = Array.from(view.matchAll(/class="item-title">\s*([^<]*?)\s*<a[^>]*href="[^"]*a=confproduct&(?:amp;)?i=(\d+)"/g)).filter((m) => m[1] === title);
+    if (found.length === 0) return `could not find "${title}" in the cart`;
+    const index = found[found.length - 1][2];
+    const conf = await get(`/cart.php?a=confproduct&i=${index}`, jar);
+    if (!conf.includes(`name="addons[${c.addonId}]"`)) return 'billing does not offer this addon on the PBX product in the bundle';
+    const token = conf.match(/name="token"\s+value="([^"]+)"/)?.[1];
+    if (!token) return 'no form token on the configure page';
+    await post(`/cart.php?a=confproduct&i=${index}`, new URLSearchParams({ token, configure: 'true', i: index, [`addons[${c.addonId}]`]: 'on' }).toString(), jar);
+  }
+  const after = text(await get('/cart.php?a=view', jar));
+  if (!after.includes(wanted)) return c.pid !== undefined ? 'billing did not attach the addon to the product' : 'the addon did not attach after the configure form was submitted';
+  return null;
+}
+
+async function checkAddonAttachments() {
+  // ADDON_CHECK_ONLY="PBX 10" limits the run to one plan; ADDON_CHECK_VERBOSE=1 prints every result.
+  const only = process.env.ADDON_CHECK_ONLY;
+  const queue = offeredCombos().filter((c) => !only || c.label === only);
+  const failures: { combo: Combo; why: string }[] = [];
+  const unverified: string[] = [];
+  await Promise.all(
+    Array.from({ length: 4 }, async () => {
+      for (let c = queue.shift(); c; c = queue.shift()) {
+        let why: string | null;
+        try {
+          why = await attaches(c);
+        } catch {
+          try {
+            why = await attaches(c); // one retry: the billing site can be slow
+          } catch (err) {
+            unverified.push(`${c.label} + ${c.addonName} (${(err as Error).message})`);
+            continue;
+          }
+        }
+        compared++;
+        if (process.env.ADDON_CHECK_VERBOSE === '1') console.log(`  ${why ? '✗' : '✓'} ${c.label} + ${c.addonName}${why ? ' — ' + why : ''}`);
+        if (why) failures.push({ combo: c, why });
+      }
+    }),
+  );
+  if (unverified.length) notes.push(`⚠ ${unverified.length} toggle combination(s) could not be checked (billing too slow or unreachable): ${unverified.join('; ')}`);
+  failures
+    .sort((a, b) => (a.combo.label + a.combo.addonName).localeCompare(b.combo.label + b.combo.addonName))
+    .forEach(({ combo, why }) => diffs.push({ what: `Toggle offered: ${combo.label} + ${combo.addonName} (${why})`, site: 'offered', billing: 'not attached' }));
+}
+
 async function main() {
   let billing: Billing;
   try {
@@ -226,6 +327,13 @@ async function main() {
     process.exit(process.env.PRICE_CHECK_STRICT === '1' ? 1 : 0);
   }
   compareAll(billing);
+  if (process.env.SKIP_ADDON_CHECK !== '1') {
+    try {
+      await checkAddonAttachments();
+    } catch (err) {
+      console.warn(`⚠ addon attachment check could not run (${(err as Error).message}).`);
+    }
+  }
   for (const n of notes) console.log(n);
   if (diffs.length === 0) {
     console.log(`✓ price check: all ${compared} prices match the billing system.`);
