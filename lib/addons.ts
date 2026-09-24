@@ -47,16 +47,16 @@ const ELIGIBILITY: Record<string, Record<PlanFamily, Eligibility>> = {
   'addon-virtual-fax': { home: 'no', business: 'eligible', pbx: 'eligible', trunk: 'eligible' },
 };
 
-// Where the billing system can ATTACH the addon to the plan's cart item today.
-// An addon that is eligible but not attachable yet shows "Coming soon" rather
-// than being sold without actually being added. Confirmed by testing the
-// live cart: Business Line takes all three; Home Line takes call blocking
-// only. Add a family here once the addon is enabled for those products
-// (Cloud PBX bundles also need addon support in the cart link).
+// Where the billing system attaches the addon to the plan's cart item. An
+// addon that is eligible but not listed here shows "Coming soon" rather than
+// being sold without actually being added. Bundles (Cloud PBX and Call Center)
+// attach it to their PBX product. `npm run check:prices` adds every offered
+// combination to a live cart and fails if billing does not attach it, so a
+// toggle can never be shown for a product that can't take it.
 const ATTACHABLE: Record<string, PlanFamily[]> = {
-  'addon-callerid-block': ['home', 'business'],
+  'addon-callerid-block': ['home', 'business', 'pbx'],
   'addon-virtual-receptionist': ['business'],
-  'addon-virtual-fax': ['business'],
+  'addon-virtual-fax': ['business', 'pbx', 'trunk'],
 };
 
 // Short names used in sentences ("IVR isn't available on Home plans.").
