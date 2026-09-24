@@ -1,0 +1,23 @@
+name: Price check
+
+# Compares every price in lib/products.ts and lib/addons.ts with the billing
+# system (the source of truth). Fails the pull request if anything differs.
+# To make it a hard gate, mark "Price check" as a required status check for
+# main in the repository's branch protection settings.
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  price-check:
+    name: Price check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run check:prices

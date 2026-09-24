@@ -247,3 +247,21 @@ or any static host if you change hosts later.
 - Run Lighthouse against the **deployed** Netlify URL, not local dev
   (`npm run dev` is unoptimized and won't reflect real production
   performance).
+
+## Price check (billing system is the source of truth)
+
+Every price on the site must equal what the billing system charges.
+`npm run check:prices` reads the billing system's storefront and carts and
+compares them with `lib/products.ts` / `lib/addons.ts`. It exits 1 and lists
+every difference.
+
+- **Before every merge to `main`:** run `npm run check:prices` (the
+  `Price check` GitHub Action runs it on every pull request; make it a
+  required check in branch protection to enforce it).
+- **In the build:** `npm run build` runs it first (`prebuild`). On `main` a
+  difference fails the build (the previous deploy stays live); on other
+  branches it prints a warning so previews still build. An unreachable
+  billing system is a warning, never a failed deploy.
+- **Offline work:** `SKIP_PRICE_CHECK=1 npm run build`.
+- **Fixing a difference:** the billing system wins. Update the site data, or
+  fix the billing system if that is what is wrong, then re-run.

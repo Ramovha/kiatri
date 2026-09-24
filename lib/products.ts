@@ -580,8 +580,8 @@ export const addons: Addon[] = [
     whmcsAddonId: 4,
     name: 'CallerID Block/Blacklist',
     tagline: 'Block scam and telemarketing calls',
-    priceZAR: 59,
-    setupFeeZAR: 39,
+    priceZAR: 60,
+    setupFeeZAR: 40,
     features: [
       'Block known scam/telemarketing numbers',
       'Reject specific numbers you choose',
@@ -597,8 +597,8 @@ export const addons: Addon[] = [
     whmcsAddonId: 5,
     name: 'Virtual Receptionist (IVR)',
     tagline: 'An auto-attendant menu so your business sounds bigger',
-    priceZAR: 79,
-    setupFeeZAR: 199,
+    priceZAR: 80,
+    setupFeeZAR: 200,
     features: [
       'Auto-attendant / "Press 1 for Sales" style menu',
       'Up to 20 mailbox users',
@@ -632,7 +632,7 @@ export const addons: Addon[] = [
     whmcsAddonId: 6,
     name: 'Virtual Fax',
     tagline: 'Send and receive faxes online — no fax machine needed',
-    priceZAR: 159,
+    priceZAR: 160,
     features: [
       'Receive faxes as PDF attachments to email',
       'Send documents through a self-service virtual fax panel',
