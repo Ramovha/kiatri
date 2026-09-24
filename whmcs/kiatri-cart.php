@@ -7,7 +7,11 @@
  * marketing-site build (Cloudflare only publishes the `out` folder).
  *
  * Link format (built by the pricing page):
- *   /kiatri-cart.php?items=bid:2,pid:26,pid:12&cycle=monthly
+ *   /kiatri-cart.php?items=bid:2,pid:26&cycle=monthly
+ *   /kiatri-cart.php?items=pid:9[addons:5,6]&cycle=monthly
+ * A plan can carry Product Addons in [addons:ID,ID]; they are attached to that
+ * plan's cart item (addons[ID]=on), not added as separate products. Only
+ * products can carry addons — bundles ignore them.
  *
  * What it does: empties the visitor's cart, adds every item with monthly
  * billing using WHMCS's own add URLs (products with pid, bundles with bid),
@@ -21,29 +25,38 @@
  * they proceed to checkout from there.
  *
  * Only the IDs listed below can be added. Never add the hidden products
- * (pid 3, 16, 19, 21-24, 29-33) — bundles pull those in by themselves.
+ * (pid 3, 11, 12, 16, 19, 21-24, 29-33) — bundles pull those in by themselves.
  */
 
-const ALLOWED_PID = [1, 4, 5, 8, 9, 10, 11, 12, 13, 17, 18, 26, 27, 28];
+const ALLOWED_PID = [1, 4, 5, 8, 9, 10, 13, 17, 18, 26, 27, 28];
+const ALLOWED_ADDON = [4, 5, 6];
 const ALLOWED_BID = [1, 2, 3, 4, 5, 6, 7, 8];
 const ALLOWED_CYCLES = ['monthly', 'annually'];
 const MAX_ITEMS = 8;
 
 $cycle = isset($_GET['cycle']) && in_array($_GET['cycle'], ALLOWED_CYCLES, true) ? $_GET['cycle'] : 'monthly';
 
-// Parse and validate "type:id" tokens; drop anything unknown and any repeat.
+// Parse and validate items; drop anything unknown and any repeat.
 $items = [];
 $raw = isset($_GET['items']) && is_string($_GET['items']) ? $_GET['items'] : '';
-foreach (explode(',', $raw) as $token) {
-    if (!preg_match('/^(pid|bid):(\d{1,3})$/', trim($token), $m)) {
-        continue;
-    }
+preg_match_all('/(pid|bid):(\d{1,3})(?:\[addons:([\d,]{1,20})\])?/', $raw, $matches, PREG_SET_ORDER);
+foreach ($matches as $m) {
     $id = (int) $m[2];
     $allowed = $m[1] === 'pid' ? ALLOWED_PID : ALLOWED_BID;
     $key = $m[1] . ':' . $id;
-    if (in_array($id, $allowed, true) && !isset($items[$key]) && count($items) < MAX_ITEMS) {
-        $items[$key] = ['type' => $m[1], 'id' => $id];
+    if (!in_array($id, $allowed, true) || isset($items[$key]) || count($items) >= MAX_ITEMS) {
+        continue;
     }
+    $addons = [];
+    if ($m[1] === 'pid' && isset($m[3])) {
+        foreach (explode(',', $m[3]) as $addonId) {
+            $addonId = (int) $addonId;
+            if (in_array($addonId, ALLOWED_ADDON, true) && !in_array($addonId, $addons, true)) {
+                $addons[] = $addonId;
+            }
+        }
+    }
+    $items[$key] = ['type' => $m[1], 'id' => $id, 'addons' => $addons];
 }
 $items = array_values($items);
 
@@ -58,7 +71,11 @@ function add_url(array $item, string $cycle): string
     if ($item['type'] === 'bid') {
         return '/cart.php?a=add&bid=' . $item['id'];
     }
-    return '/cart.php?a=add&pid=' . $item['id'] . '&billingcycle=' . $cycle . '&skipconfig=1';
+    $url = '/cart.php?a=add&pid=' . $item['id'] . '&billingcycle=' . $cycle . '&skipconfig=1';
+    foreach ($item['addons'] as $addonId) {
+        $url .= '&addons%5B' . $addonId . '%5D=on';
+    }
+    return $url;
 }
 
 $addUrls = array_map(function ($item) use ($cycle) {
@@ -67,7 +84,7 @@ $addUrls = array_map(function ($item) use ($cycle) {
 
 $fallback = $addUrls ? $addUrls[0] : '/cart.php?a=view';
 $tokens = array_map(function ($item) {
-    return $item['type'] . ':' . $item['id'];
+    return $item['type'] . ':' . $item['id'] . ($item['addons'] ? '[' . implode(',', $item['addons']) . ']' : '');
 }, $items);
 $payload = json_encode(
     ['urls' => $addUrls, 'key' => implode(',', $tokens) . '|' . $cycle],

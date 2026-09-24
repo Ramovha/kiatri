@@ -546,6 +546,12 @@ export const homeProducts: HomeProduct[] = [
 // forcing these into Plan/PricingCard would make both harder to read.
 export interface Addon {
   id: string;
+  // Short id used in links and query strings (?addon=ivr).
+  slug?: 'callerid' | 'ivr' | 'fax';
+  // Billing-system Product Addon ID — attaches the addon to a plan's cart
+  // item (addons[ID]=on) instead of selling it as a separate product.
+  // Confirm against the billing system before changing.
+  whmcsAddonId?: number;
   name: string;
   tagline: string;
   // Longer explanatory copy shown below the tagline — used by items whose
@@ -570,6 +576,8 @@ export interface Addon {
 export const addons: Addon[] = [
   {
     id: 'addon-callerid-block',
+    slug: 'callerid',
+    whmcsAddonId: 4,
     name: 'CallerID Block/Blacklist',
     tagline: 'Block scam and telemarketing calls',
     priceZAR: 59,
@@ -582,12 +590,13 @@ export const addons: Addon[] = [
     ],
     status: 'available',
     pricingStatus: 'illustrative-pending-costing',
-    whmcsPid: 11,
   },
   {
     id: 'addon-virtual-receptionist',
+    slug: 'ivr',
+    whmcsAddonId: 5,
     name: 'Virtual Receptionist (IVR)',
-    tagline: 'Auto-attendant menu for Line Plans customers — sound like a bigger business',
+    tagline: 'An auto-attendant menu so your business sounds bigger',
     priceZAR: 79,
     setupFeeZAR: 199,
     features: [
@@ -601,10 +610,8 @@ export const addons: Addon[] = [
     // Residential/Home Voice deliberately excluded: a multi-mailbox
     // "Press 1 for Sales" auto-attendant doesn't fit a single-line home
     // product the way it fits a small-business Line Plan.
-    eligibilityNote: 'Available for Line Plans customers only — PBX plans already include full IVR.',
     status: 'available',
     pricingStatus: 'illustrative-pending-costing',
-    whmcsPid: 12,
   },
   {
     id: 'addon-callerid-lookup',
@@ -621,6 +628,8 @@ export const addons: Addon[] = [
   },
   {
     id: 'addon-virtual-fax',
+    slug: 'fax',
+    whmcsAddonId: 6,
     name: 'Virtual Fax',
     tagline: 'Send and receive faxes online — no fax machine needed',
     priceZAR: 159,

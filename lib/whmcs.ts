@@ -48,20 +48,30 @@ export function planOrderUrl(
 
 type OrderableLike = { whmcsPid?: number; whmcsBid?: number; comingSoon?: boolean };
 
-// "bid:2,pid:26,pid:12" — bundles first-class alongside products.
-export function cartItemToken(plan: OrderableLike): string | null {
+// One cart item: a plan (or bundle), with any Product Addons attached to it.
+// Addons attach to the plan's cart item — they are not separate products.
+export interface CartItem {
+  product: OrderableLike;
+  addonIds?: number[];
+}
+
+// "pid:9", "bid:2", or with addons "pid:9[addons:5,6]".
+export function cartItemToken(item: OrderableLike | CartItem): string | null {
+  const { product: plan, addonIds } = 'product' in item ? item : { product: item, addonIds: undefined };
   if (plan.comingSoon) return null;
-  if (typeof plan.whmcsBid === 'number') return `bid:${plan.whmcsBid}`;
-  if (typeof plan.whmcsPid === 'number') return `pid:${plan.whmcsPid}`;
-  return null;
+  let base: string;
+  if (typeof plan.whmcsBid === 'number') base = `bid:${plan.whmcsBid}`;
+  else if (typeof plan.whmcsPid === 'number') base = `pid:${plan.whmcsPid}`;
+  else return null;
+  return addonIds && addonIds.length ? `${base}[addons:${addonIds.join(',')}]` : base;
 }
 
 // One link for everything selected. Returns null when nothing can be ordered
 // or ANY selected item has no order link yet, so a partial order is never
 // sent to checkout.
-export function orderCartUrl(plans: OrderableLike[], billingCycle: BillingCycle = 'monthly'): string | null {
-  if (plans.length === 0) return null;
-  const tokens = plans.map(cartItemToken);
+export function orderCartUrl(items: (OrderableLike | CartItem)[], billingCycle: BillingCycle = 'monthly'): string | null {
+  if (items.length === 0) return null;
+  const tokens = items.map(cartItemToken);
   if (tokens.some((token) => token === null)) return null;
   return `${KIATRI_CART_URL}?items=${tokens.join(',')}&cycle=${billingCycle}`;
 }

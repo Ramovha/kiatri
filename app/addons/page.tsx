@@ -1,13 +1,30 @@
 import type { Metadata } from 'next';
 import PromoBanner from '@/components/PromoBanner';
 import CTAButton from '@/components/CTAButton';
-import AddonCard from '@/components/AddonCard';
+import AddonsExplorer from '@/components/AddonsExplorer';
 import { TagIcon, BoltIcon } from '@/components/icons';
-import { addons } from '@/lib/products';
+import { SITE_URL } from '@/lib/site';
+
+const PAGE_URL = `${SITE_URL}/addons`;
+const TITLE = 'VoIP Addons South Africa | Call Blocking, IVR & Virtual Fax | Kiatri';
+const DESCRIPTION =
+  'Block spam calls, add a virtual receptionist, or send and receive faxes online. Add them to your Kiatri home or business line in minutes.';
+const OG_ALT = 'Kiatri phone line addons: call blocking, virtual receptionist and virtual fax';
 
 export const metadata: Metadata = {
-  title: 'Addons',
-  description: 'Attach call blocking, a virtual receptionist, virtual fax, and more to any Kiatri plan.',
+  title: { absolute: TITLE },
+  description: DESCRIPTION,
+  alternates: { canonical: PAGE_URL, languages: { 'en-ZA': PAGE_URL } },
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    url: PAGE_URL,
+    siteName: 'Kiatri',
+    locale: 'en_ZA',
+    type: 'website',
+    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: OG_ALT }],
+  },
+  twitter: { card: 'summary_large_image', title: TITLE, description: DESCRIPTION, images: [{ url: '/opengraph-image', alt: OG_ALT }] },
 };
 
 export default function AddonsPage() {
@@ -17,7 +34,7 @@ export default function AddonsPage() {
         eyebrow="Addons"
         headlineLead="Small additions,"
         headlineAccent="real problems solved."
-        description="Call blocking, a virtual receptionist, virtual fax, and an AI roadmap — small, focused upgrades that each solve one real problem. They attach to any plan on our Pricing page — no need to switch plans to add one."
+        description="Call blocking, a virtual receptionist, virtual fax, and more on the way. Each one solves a real problem, and attaches to the plan you already have."
         ctaLabel="See addons"
         ctaHref="#addons"
         pills={[
@@ -27,11 +44,7 @@ export default function AddonsPage() {
       />
 
       <div className="mx-auto max-w-6xl px-6 py-16">
-        <div id="addons" className="scroll-mt-24 grid gap-6 md:grid-cols-2">
-          {addons.map((addon) => (
-            <AddonCard key={addon.id} addon={addon} />
-          ))}
-        </div>
+        <AddonsExplorer />
 
         <div className="mt-14 rounded-2xl bg-navy-950 p-8 text-center text-white">
           <h2 className="text-xl font-bold">Not sure which addon fits?</h2>
