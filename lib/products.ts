@@ -36,9 +36,10 @@ import {
 // with an "illustrative pricing" note (see PricingDisclaimer component)
 // until replaced with a real costed number.
 //
-// WHMCS NOTE: every `whmcsPid` / `whmcsBid` below is a placeholder. Replace
-// with the real WHMCS product/bundle ID once catalog + pricing are final —
-// see SETUP.md for the exact steps.
+// ORDER LINKS: `whmcsPid` (product) and `whmcsBid` (bundle) are the real
+// billing-system IDs. Bundles must always use `bid`, never the `pid` of the
+// hidden products inside them. A plan with neither ID (or `comingSoon`)
+// renders a disabled "Coming soon" button — see components/OrderButton.tsx.
 
 export type PricingStatus = 'illustrative-pending-costing';
 
@@ -84,7 +85,10 @@ export interface Plan {
   // Both optional to support a quote-only "Talk to us" tier (e.g. Enterprise
   // SIP Trunk) alongside self-serve plans — omit both and set ctaHref/
   // ctaLabel instead. Every self-serve plan still sets whmcsPid as before.
-  whmcsPid?: number; // TODO: replace with real WHMCS product ID
+  whmcsPid?: number; // billing-system product ID (cart.php?a=add&pid=)
+  whmcsBid?: number; // billing-system bundle ID (cart.php?a=add&bid=) — used instead of pid for PBX tiers
+  // No orderable product exists yet — render a disabled "Coming soon" button.
+  comingSoon?: boolean;
   ctaHref?: string; // used when there's no whmcsPid (e.g. "/contact")
   ctaLabel?: string; // defaults to 'Order Now' in PricingCard when whmcsPid is set
   popular?: boolean;
@@ -128,7 +132,7 @@ export const linePlans: Plan[] = [
     billingNote: '+ per-minute call charges from your prepaid balance',
     balanceNote: 'Calls pause automatically if your balance runs out — top up anytime to resume.',
     pricingStatus: 'illustrative-pending-costing',
-    whmcsPid: 101, // TODO: replace with real WHMCS product ID
+    whmcsPid: 8,
   },
   {
     id: 'line-200',
@@ -148,7 +152,7 @@ export const linePlans: Plan[] = [
     ],
     priceZAR: 220,
     pricingStatus: 'illustrative-pending-costing',
-    whmcsPid: 102, // TODO: replace with real WHMCS product ID
+    whmcsPid: 9,
     popular: true,
   },
   {
@@ -169,7 +173,7 @@ export const linePlans: Plan[] = [
     ],
     priceZAR: 700,
     pricingStatus: 'illustrative-pending-costing',
-    whmcsPid: 103, // TODO: replace with real WHMCS product ID
+    whmcsPid: 10,
   },
   {
     id: 'line-1600',
@@ -189,7 +193,7 @@ export const linePlans: Plan[] = [
     ],
     priceZAR: 1280,
     pricingStatus: 'illustrative-pending-costing',
-    whmcsPid: 104, // TODO: replace with real WHMCS product ID
+    whmcsPid: 17,
   },
   {
     id: 'line-3200',
@@ -209,7 +213,7 @@ export const linePlans: Plan[] = [
     ],
     priceZAR: 2540,
     pricingStatus: 'illustrative-pending-costing',
-    whmcsPid: 105, // TODO: replace with real WHMCS product ID
+    whmcsPid: 18,
   },
 ];
 
@@ -234,7 +238,7 @@ export const pbxTiers: Plan[] = [
     // R324 PBX component + R220 Line 200 (bundled minutes tier) = R544 total.
     priceZAR: 544,
     pricingStatus: 'illustrative-pending-costing',
-    whmcsPid: 201, // TODO: replace with real WHMCS product ID
+    whmcsBid: 1,
   },
   {
     id: 'pbx-10',
@@ -255,7 +259,7 @@ export const pbxTiers: Plan[] = [
     // R340 PBX component + R700 Line 800 (bundled minutes tier) = R1,040 total.
     priceZAR: 1040,
     pricingStatus: 'illustrative-pending-costing',
-    whmcsPid: 202, // TODO: replace with real WHMCS product ID
+    whmcsBid: 2,
     popular: true,
   },
   {
@@ -281,7 +285,7 @@ export const pbxTiers: Plan[] = [
     // R1,280 PBX component + R1,280 Line 1600 (bundled minutes tier) = R2,560 total.
     priceZAR: 2560,
     pricingStatus: 'illustrative-pending-costing',
-    whmcsPid: 203, // TODO: replace with real WHMCS product ID
+    whmcsBid: 3,
   },
   {
     id: 'pbx-50',
@@ -304,7 +308,7 @@ export const pbxTiers: Plan[] = [
     // R2,210 PBX component + R2,540 Line 3200 (bundled minutes tier) = R4,750 total.
     priceZAR: 4750,
     pricingStatus: 'illustrative-pending-costing',
-    whmcsPid: 204, // TODO: replace with real WHMCS product ID
+    whmcsBid: 4,
   },
 ];
 
@@ -327,7 +331,7 @@ export const trunkPlans: Plan[] = [
     ],
     priceZAR: 2690,
     pricingStatus: 'illustrative-pending-costing',
-    whmcsPid: 301, // TODO: replace with real WHMCS product ID
+    whmcsPid: 26,
   },
   {
     id: 'trunk-5400',
@@ -346,7 +350,7 @@ export const trunkPlans: Plan[] = [
     ],
     priceZAR: 4260,
     pricingStatus: 'illustrative-pending-costing',
-    whmcsPid: 302, // TODO: replace with real WHMCS product ID
+    whmcsPid: 27,
     popular: true,
   },
   {
@@ -366,7 +370,7 @@ export const trunkPlans: Plan[] = [
     ],
     priceZAR: 6620,
     pricingStatus: 'illustrative-pending-costing',
-    whmcsPid: 303, // TODO: replace with real WHMCS product ID
+    whmcsPid: 28,
   },
   {
     id: 'trunk-enterprise',
@@ -417,7 +421,7 @@ export const residentialPlans: Plan[] = [
     billingNote: '+ per-minute call charges from your prepaid balance',
     balanceNote: 'Calls pause automatically if your balance runs out — top up anytime to resume.',
     pricingStatus: 'illustrative-pending-costing',
-    whmcsPid: 501, // TODO: replace with real WHMCS product ID
+    whmcsPid: 1,
   },
   {
     id: 'residential-200',
@@ -437,7 +441,7 @@ export const residentialPlans: Plan[] = [
     ],
     priceZAR: 180,
     pricingStatus: 'illustrative-pending-costing',
-    whmcsPid: 502, // TODO: replace with real WHMCS product ID
+    whmcsPid: 4, // Home 200 Prepaid
     popular: true,
   },
   {
@@ -458,7 +462,7 @@ export const residentialPlans: Plan[] = [
     ],
     priceZAR: 340,
     pricingStatus: 'illustrative-pending-costing',
-    whmcsPid: 504, // TODO: replace with real WHMCS product ID
+    whmcsPid: 5, // Home 400 Prepaid
   },
   {
     id: 'residential-unlimited',
@@ -485,7 +489,7 @@ export const residentialPlans: Plan[] = [
     // revisit if real usage data shows the cap needs adjusting.
     priceZAR: 199,
     pricingStatus: 'illustrative-pending-costing',
-    whmcsPid: 503, // TODO: replace with real WHMCS product ID
+    comingSoon: true, // no billing product yet
   },
 ];
 
@@ -506,7 +510,7 @@ export interface Addon {
   eligibilityNote?: string;
   status: 'available' | 'coming-soon';
   pricingStatus: PricingStatus;
-  whmcsPid?: number; // TODO: replace with real WHMCS product ID — omitted for coming-soon items with no orderable product yet
+  whmcsPid?: number; // omitted for coming-soon items with no orderable product yet
 }
 
 // Deliberately NOT ported from the icttech.ca reference addon list:
@@ -531,7 +535,7 @@ export const addons: Addon[] = [
     ],
     status: 'available',
     pricingStatus: 'illustrative-pending-costing',
-    whmcsPid: 601, // TODO: replace with real WHMCS product ID
+    whmcsPid: 11,
   },
   {
     id: 'addon-virtual-receptionist',
@@ -553,7 +557,7 @@ export const addons: Addon[] = [
     eligibilityNote: 'Available for Line Plans customers only — PBX plans already include full IVR.',
     status: 'available',
     pricingStatus: 'illustrative-pending-costing',
-    whmcsPid: 602, // TODO: replace with real WHMCS product ID
+    whmcsPid: 12,
   },
   {
     id: 'addon-callerid-lookup',
@@ -582,7 +586,7 @@ export const addons: Addon[] = [
     ],
     status: 'available',
     pricingStatus: 'illustrative-pending-costing',
-    whmcsPid: 603, // TODO: replace with real WHMCS product ID
+    whmcsPid: 13,
   },
   {
     id: 'addon-ai-receptionist',
@@ -735,8 +739,8 @@ export interface CallCenterTier {
   // product — see the restructure note above callCenterTiers. whmcsPid is
   // kept on the type for backward compatibility but no tier below sets it
   // any more; Enterprise sets neither, it's quote-only.
-  whmcsBid?: number; // TODO: replace with real WHMCS bundle ID
-  whmcsPid?: number; // TODO: replace with real WHMCS product ID — unused now, see whmcsBid
+  whmcsBid?: number;
+  whmcsPid?: number; // unused now, see whmcsBid
 }
 
 // Named-licence ladder — each self-serve tier is a real, complete WHMCS
@@ -765,7 +769,7 @@ export const callCenterTiers: CallCenterTier[] = [
       baseSuffix: '/month base (10 seats) + per-minute',
       priceNote:
         'Includes PBX 10 (10 seats) + Call Center Essentials base. + R0.79/min blended call-handling rate (based on real provider costs).',
-      whmcsBid: 706, // TODO: replace with real WHMCS bundle ID
+      whmcsBid: 7,
     },
     features: [
       {
@@ -790,7 +794,7 @@ export const callCenterTiers: CallCenterTier[] = [
     ctaLabel: 'Order Now',
     ctaHref: '/contact',
     pricingStatus: 'illustrative-pending-costing',
-    whmcsBid: 705, // TODO: replace with real WHMCS bundle ID
+    whmcsBid: 5,
   },
   {
     id: 'call-center-pro',
@@ -809,7 +813,7 @@ export const callCenterTiers: CallCenterTier[] = [
       baseSuffix: '/month base (25 seats) + per-minute',
       priceNote:
         'Includes PBX 25 (25 seats) + Call Center Pro base. + R0.79/min blended call-handling rate (based on real provider costs).',
-      whmcsBid: 708, // TODO: replace with real WHMCS bundle ID
+      whmcsBid: 8,
     },
     features: [
       {
@@ -865,7 +869,7 @@ export const callCenterTiers: CallCenterTier[] = [
     ctaLabel: 'Order Now',
     ctaHref: '/contact',
     pricingStatus: 'illustrative-pending-costing',
-    whmcsBid: 707, // TODO: replace with real WHMCS bundle ID
+    whmcsBid: 6,
   },
   {
     id: 'enterprise',
@@ -928,23 +932,6 @@ export const callCenterTiers: CallCenterTier[] = [
   },
 ];
 
-// --- WHMCS bundle example (seats + trunk sold together) ---
-export interface Bundle {
-  id: string;
-  name: string;
-  description: string;
-  whmcsBid: number; // TODO: replace with real WHMCS bundle ID
-}
-
-export const bundles: Bundle[] = [
-  {
-    id: 'starter-bundle',
-    name: 'Starter Office Bundle',
-    description: 'PBX 5 seats + Metro 3400 trunk, provisioned together.',
-    whmcsBid: 401, // TODO: replace with real WHMCS bundle ID
-  },
-];
-
 // --- Phone hardware options — "Connect a Phone" tab on /voice. A distinct
 // shape from Plan/Addon on purpose: Rent/Buy have a real illustrative price
 // now (see below) but are still not orderable — pricing and fulfillment
@@ -963,6 +950,9 @@ export interface PhoneHardwareOption {
   priceNote: string;
   features: string[];
   status: 'available' | 'coming-soon';
+  // Billing-system product ID, recorded for when hardware goes on sale. Do not
+  // link to it while status is 'coming-soon'.
+  whmcsPid?: number;
 }
 
 // Hardware cost reference (2026, real SA retail): a standard SIP/DECT
@@ -987,6 +977,7 @@ export const phoneHardwareOptions: PhoneHardwareOption[] = [
   },
   {
     id: 'phone-rent',
+    whmcsPid: 7,
     name: 'Rent a Cordless Phone',
     tagline: 'We ship you the phone, you just plug it in.',
     description: 'A monthly rental bundled with your line service — no upfront hardware cost.',
@@ -1007,6 +998,7 @@ export const phoneHardwareOptions: PhoneHardwareOption[] = [
   },
   {
     id: 'phone-buy',
+    whmcsPid: 6,
     name: 'Buy a Cordless Phone',
     tagline: 'One once-off payment, the phone is yours.',
     description: 'A once-off hardware payment — your existing line service price continues unchanged.',

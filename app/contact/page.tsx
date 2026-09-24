@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ClockIcon, MapPinIcon } from '@/components/icons';
+import { MapPinIcon } from '@/components/icons';
 import { SUPPORT_EMAIL } from '@/lib/site';
 import ContactEmailCard from '@/components/ContactEmailCard';
 
@@ -22,23 +22,6 @@ export default function ContactPage() {
 
       <div className="mt-10 grid gap-6 sm:grid-cols-2">
         <ContactEmailCard email={SUPPORT_EMAIL} />
-        <a
-          href="tel:+27000000000"
-          className="rounded-2xl border border-navy-900/10 bg-white p-6 shadow-card transition hover:border-ember-500/50"
-        >
-          <h3 className="font-bold text-navy-900">Call us</h3>
-          <p className="mt-2 text-sm text-navy-700">[REPLACE WITH REAL DATA — real support number]</p>
-        </a>
-      </div>
-
-      <div className="mt-6 grid gap-6 sm:grid-cols-2">
-        <div className="rounded-2xl border border-navy-900/10 bg-white p-6">
-          <div className="flex items-center gap-2">
-            <ClockIcon className="h-5 w-5 text-ember-500" />
-            <h3 className="font-bold text-navy-900">Support hours</h3>
-          </div>
-          <p className="mt-2 text-sm text-navy-700">[REPLACE WITH REAL DATA]</p>
-        </div>
         <div className="rounded-2xl border border-navy-900/10 bg-white p-6">
           <div className="flex items-center gap-2">
             <MapPinIcon className="h-5 w-5 text-ember-500" />
@@ -47,12 +30,6 @@ export default function ContactPage() {
           <p className="mt-2 text-sm text-navy-700">South Africa</p>
         </div>
       </div>
-
-      <p className="mt-10 rounded-lg border border-dashed border-navy-900/20 p-4 text-xs text-navy-700">
-        TODO: this page currently only offers mailto:/tel: links since this is a static marketing site with no
-        backend. Wire up a real contact-form service (e.g. Formspree, a serverless function, or a WHMCS support
-        ticket API) before launch if a form is required.
-      </p>
     </div>
   );
 }

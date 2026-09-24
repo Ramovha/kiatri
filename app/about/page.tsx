@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import CoverageMap from '@/components/CoverageMap';
-import { ClockIcon, MapPinIcon, ShieldIcon } from '@/components/icons';
+import { MapPinIcon, ShieldIcon } from '@/components/icons';
 
 export const metadata: Metadata = {
   title: 'About & Trust',
@@ -10,7 +10,6 @@ export const metadata: Metadata = {
 
 const FACTS = [
   { icon: MapPinIcon, title: 'South African company', description: 'Based and operated in South Africa, serving South African businesses and homes.' },
-  { icon: ClockIcon, title: 'Support hours', description: '[REPLACE WITH REAL DATA — confirm actual support hours before publishing]' },
   { icon: ShieldIcon, title: 'Infrastructure', description: 'Redundant SIP infrastructure across multiple points of presence, with automatic failover on our trunk tiers.' },
 ];
 
@@ -25,7 +24,7 @@ export default function AboutPage() {
         African homes and businesses, with people you can actually reach behind every account.
       </p>
 
-      <div className="mt-10 grid gap-6 sm:grid-cols-3">
+      <div className="mt-10 grid gap-6 sm:grid-cols-2">
         {FACTS.map(({ icon: Icon, title, description }) => (
           <div key={title} className="rounded-2xl border border-navy-900/10 bg-white p-6 shadow-card">
             <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-navy-900 text-white">

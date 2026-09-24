@@ -1,6 +1,6 @@
 // Every "Order Now" / "Get Started" button on the site must resolve through
-// one of these two helpers rather than a hardcoded URL, so that plugging in
-// real WHMCS IDs later is a single-file edit (lib/products.ts) — see SETUP.md.
+// one of these helpers rather than a hardcoded URL, so order IDs live in one
+// place (lib/products.ts).
 
 const WHMCS_BASE = 'https://calling.kiatri.com/cart.php';
 
@@ -25,4 +25,17 @@ export function orderProductUrl(pid: number, billingCycle: BillingCycle = 'month
 // the Yearly toggle on confirming this works — see SETUP.md.
 export function orderBundleUrl(bid: number, billingCycle: BillingCycle = 'monthly'): string {
   return `${WHMCS_BASE}?a=add&bid=${bid}${cycleParam(billingCycle)}`;
+}
+
+// The one place that decides how a plan is ordered: a bundle (bid) wins over a
+// product (pid); a plan with neither has no order link and returns null, so
+// callers render a disabled "Coming soon" button instead of a broken link.
+export function planOrderUrl(
+  plan: { whmcsPid?: number; whmcsBid?: number; comingSoon?: boolean },
+  billingCycle: BillingCycle = 'monthly',
+): string | null {
+  if (plan.comingSoon) return null;
+  if (typeof plan.whmcsBid === 'number') return orderBundleUrl(plan.whmcsBid, billingCycle);
+  if (typeof plan.whmcsPid === 'number') return orderProductUrl(plan.whmcsPid, billingCycle);
+  return null;
 }

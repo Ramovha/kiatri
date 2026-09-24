@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ShieldIcon, MapPinIcon, ClockIcon } from '@/components/icons';
+import { ShieldIcon } from '@/components/icons';
 
 export const metadata: Metadata = {
   title: 'Security & Compliance',
@@ -9,8 +9,6 @@ export const metadata: Metadata = {
 
 const FACTS = [
   { icon: ShieldIcon, title: 'Redundant infrastructure', description: 'Multiple points of presence with automatic failover on our SIP trunk tiers.' },
-  { icon: MapPinIcon, title: 'Data hosting location', description: '[REPLACE WITH REAL DATA — confirm and disclose actual hosting region/country before publishing]' },
-  { icon: ClockIcon, title: 'Uptime commitment', description: '[REPLACE WITH REAL DATA — publish a real, measured SLA figure once finalized]' },
 ];
 
 export default function SecurityPage() {
@@ -72,8 +70,6 @@ export default function SecurityPage() {
           <p className="mt-2">
             If you believe you&apos;ve found a security vulnerability affecting Kiatri, contact us directly
             via the <Link href="/contact" className="font-medium text-ember-600 hover:text-ember-500">Contact page</Link> rather than disclosing it publicly, and we&apos;ll respond.
-            [REPLACE WITH REAL DATA — publish a dedicated security contact address and response-time
-            commitment once established.]
           </p>
         </section>
       </div>

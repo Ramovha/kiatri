@@ -26,7 +26,6 @@ export default function ContactEmailCard({ email }: { email: string }) {
       {businessAccount && (
         <p className="mt-1 text-xs font-semibold text-ember-600">Enquiry type: Business Account</p>
       )}
-      <p className="mt-1 text-xs text-navy-400">[REPLACE WITH REAL DATA — confirm actual domain/support address, see lib/site.ts]</p>
     </a>
   );
 }
