@@ -6,7 +6,7 @@ import { BoltIcon, MapPinIcon, TagIcon } from './icons';
 const PILLS = [
   { icon: MapPinIcon, label: 'Local South African support' },
   { icon: TagIcon, label: 'Transparent, itemized pricing' },
-  { icon: BoltIcon, label: 'Live in minutes, not days' },
+  { icon: BoltIcon, label: 'Most plans live in minutes, not days' },
 ];
 
 export default function Hero() {
@@ -26,13 +26,12 @@ export default function Hero() {
             Hosted VoIP &amp; Call Center, built for South Africa
           </p>
           <h1 className="mt-6 text-4xl font-extrabold leading-tight tracking-tight md:text-5xl">
-            A business phone system that answers to you — not a queue.
+            South African phone lines that answer to you — not a queue.
           </h1>
           <p className="mt-6 text-lg text-navy-200">
             Cloud PBX, SIP trunks, and call center tools with a real local team behind them and
-            pricing you can actually read before you buy. Order online, and your line is
-            provisioned automatically after payment — no sales call required.
-          </p>
+            pricing you can actually read before you buy. Order online and most plans go live
+            automatically after payment.</p>
 
           <div className="mt-8">
             <PlanFinder />

@@ -1,6 +1,49 @@
 import Hero from '@/components/Hero';
 import CTAButton from '@/components/CTAButton';
-import { HandsetIcon, ServerRackIcon, HeadsetIcon, HomeIcon } from '@/components/icons';
+import {
+  HandsetIcon,
+  ServerRackIcon,
+  HeadsetIcon,
+  HomeIcon,
+  ClockIcon,
+  TagIcon,
+  CheckCircleIcon,
+  BoltIcon,
+} from '@/components/icons';
+import { TOPUP_MIN_LABEL, CALL_RATE_LABEL, SUPPORT_HOURS_LABEL } from '@/lib/site';
+
+const BILLING_POINTS = [
+  { icon: ClockIcon, text: 'Billed per minute: every call is rounded up to the next full minute.' },
+  { icon: TagIcon, text: `Prepaid and in control: top up anytime, from as little as ${TOPUP_MIN_LABEL}.` },
+  { icon: CheckCircleIcon, text: 'No surprise bills: when your credit runs out, calls pause until you top up.' },
+  { icon: BoltIcon, text: 'Low-balance alerts: we let you know before your credit runs out.' },
+];
+
+const FAQS = [
+  {
+    question: 'What happens when my credit runs out?',
+    answer:
+      'Calls pause until you top up. There are no surprise bills, and we send a low-balance alert before it happens.',
+  },
+  {
+    question: 'Can I keep my existing number?',
+    answer: 'Yes. You can port your current number to Kiatri, or choose a new local number.',
+  },
+  {
+    question: 'Is there a contract?',
+    answer:
+      'Pay-as-you-go plans have no contract. Larger businesses can choose a Business Account with one monthly invoice.',
+  },
+  {
+    question: 'Do you offer international calls?',
+    answer: 'International calling is coming soon. Local South African calls are available now.',
+  },
+  {
+    question: 'How is a call billed?',
+    answer:
+      'Per minute, rounded up to the next full minute. For example, a 1 minute 6 second call is billed as 2 minutes.',
+  },
+];
 
 const BUSINESS_CATEGORIES = [
   {
@@ -13,7 +56,7 @@ const BUSINESS_CATEGORIES = [
     href: '/business#trunks',
     icon: ServerRackIcon,
     title: 'SIP Trunks',
-    description: 'Bulk calling capacity sized by channels and minutes, sold separately from seats so you only pay for what you need.',
+    description: 'Calling capacity sized by channels, sold separately from seats so you only pay for what you need. Minute bundles coming soon.',
   },
   {
     href: '/call-center',
@@ -39,8 +82,8 @@ export default function HomePage() {
             <p className="text-sm font-semibold uppercase tracking-wide text-ember-600">What we run</p>
             <h2 className="mt-2 text-3xl font-bold text-navy-900">One phone system, sold in plain parts</h2>
             <p className="mt-3 text-navy-700">
-              Seats and calling capacity are priced and sold separately — like a phone contract splits the
-              device from the airtime. Mix and match what your business actually needs.
+              Seats and calling capacity are priced and sold separately — like buying a phone and its airtime
+              separately. Mix and match what your business actually needs.
             </p>
           </div>
           <p className="mt-8 text-xs font-semibold uppercase tracking-wide text-navy-400">For Business</p>
@@ -79,14 +122,75 @@ export default function HomePage() {
             <div className="flex-1">
               <h3 className="text-lg font-bold text-navy-900">Home Voice</h3>
               <p className="mt-1 text-sm text-navy-700">
-                A home phone line or app-based calling — no business jargon, real local numbers, simple
-                pricing.
+                A home phone line or app-based calling with real local numbers. Pay as you go: top up anytime,
+                no surprise bills.
               </p>
             </div>
             <span className="flex-none text-sm font-semibold text-ember-600 group-hover:text-ember-500">
               Explore →
             </span>
           </a>
+        </div>
+      </section>
+
+      <section className="border-t border-navy-900/10 bg-white py-20">
+        <div className="mx-auto max-w-6xl px-6">
+          <h2 className="text-3xl font-bold text-navy-900">How billing works</h2>
+          <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {BILLING_POINTS.map(({ icon: Icon, text }) => (
+              <div key={text} className="rounded-2xl border border-navy-900/10 bg-white p-6 shadow-card">
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-navy-900 text-white">
+                  <Icon className="h-5 w-5" />
+                </span>
+                <p className="mt-4 text-sm text-navy-700">{text}</p>
+              </div>
+            ))}
+          </div>
+          <a href="/pricing" className="mt-6 inline-block text-sm font-semibold text-ember-600 hover:text-ember-500">
+            See full pricing →
+          </a>
+        </div>
+      </section>
+
+      <section className="py-20">
+        <div className="mx-auto max-w-6xl px-6">
+          <div className="flex flex-col items-start gap-6 rounded-3xl border border-navy-900/10 bg-navy-100/40 p-8 sm:flex-row sm:items-center sm:justify-between">
+            <div className="max-w-xl">
+              <h2 className="text-3xl font-bold text-navy-900">Business Accounts.</h2>
+              <p className="mt-3 text-navy-700">
+                One monthly invoice for your whole team, with terms tailored to your business.
+              </p>
+            </div>
+            <CTAButton href="/contact?topic=business-account" className="flex-none">
+              Talk to our business team →
+            </CTAButton>
+          </div>
+        </div>
+      </section>
+
+      <section className="pb-20">
+        <div className="mx-auto grid max-w-6xl gap-6 px-6 md:grid-cols-2">
+          <div className="rounded-2xl border border-navy-900/10 bg-white p-6 shadow-card">
+            <h2 className="text-xl font-bold text-navy-900">Keep your number</h2>
+            <p className="mt-2 text-sm text-navy-700">
+              Moving to Kiatri? Bring your existing number with you, or choose a new local number in minutes.
+            </p>
+            <a href="/numbers" className="mt-4 inline-block text-sm font-semibold text-ember-600 hover:text-ember-500">
+              Numbers &amp; porting →
+            </a>
+          </div>
+          <div className="rounded-2xl border border-navy-900/10 bg-white p-6 shadow-card">
+            <h2 className="text-xl font-bold text-navy-900">Need a handset?</h2>
+            <p className="mt-2 text-sm text-navy-700">
+              Need a phone? Rent or buy a cordless handset with your line.
+            </p>
+            <a
+              href="/voice#connect-phone"
+              className="mt-4 inline-block text-sm font-semibold text-ember-600 hover:text-ember-500"
+            >
+              See handset options →
+            </a>
+          </div>
         </div>
       </section>
 
@@ -100,6 +204,9 @@ export default function HomePage() {
                 No offshore ticket queue. When you call for support, you reach someone in your own time zone
                 who understands the South African market.
               </p>
+              <p className="mt-2 text-sm font-medium text-white">
+                Support hours: {SUPPORT_HOURS_LABEL}, South African time.
+              </p>
             </div>
             <div>
               <h3 className="text-lg font-bold">Pricing you can actually read</h3>
@@ -107,6 +214,7 @@ export default function HomePage() {
                 Seats and trunk capacity are priced separately and shown up front — not buried behind a vague
                 &ldquo;starting from&rdquo; headline that changes once you add what you actually need.
               </p>
+              <p className="mt-3 text-sm font-bold text-ember-400">Calls from {CALL_RATE_LABEL} per minute</p>
             </div>
             <div>
               <h3 className="text-lg font-bold">Live in minutes, not days</h3>
@@ -137,6 +245,23 @@ export default function HomePage() {
       </section>
 
       */}
+
+      <section className="border-t border-navy-900/10 bg-white py-20">
+        <div className="mx-auto max-w-3xl px-6">
+          <h2 className="text-3xl font-bold text-navy-900">Common questions</h2>
+          <div className="mt-8 divide-y divide-navy-900/10 rounded-2xl border border-navy-900/10 bg-white shadow-card">
+            {FAQS.map(({ question, answer }) => (
+              <details key={question} className="group px-6 py-5">
+                <summary className="flex min-h-[44px] cursor-pointer list-none items-center justify-between font-semibold text-navy-900 marker:content-none">
+                  {question}
+                  <span className="ml-4 flex-none text-ember-500 transition group-open:rotate-45">+</span>
+                </summary>
+                <p className="mt-3 text-sm leading-relaxed text-navy-700">{answer}</p>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
 
       <section className="pb-24">
         <div className="mx-auto flex max-w-6xl flex-col items-center gap-6 rounded-3xl bg-navy-950 px-6 py-16 text-center text-white">
