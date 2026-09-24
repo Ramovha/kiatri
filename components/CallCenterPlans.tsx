@@ -5,7 +5,8 @@ import { CallCenterTier, callCenterTiers, pbxTiers } from '@/lib/products';
 import { formatZAR } from '@/lib/format';
 import { formatMinutes, includedMinutes } from '@/lib/pricing';
 import { CALL_RATE } from '@/lib/site';
-import { orderCartUrl } from '@/lib/whmcs';
+import { buildOrderLink, orderSummary } from '@/lib/addons';
+import { usePlanAddons } from '@/lib/usePlanAddons';
 import { CheckIcon } from './icons';
 import AddonToggles from './AddonToggles';
 import CTAButton from './CTAButton';
@@ -34,6 +35,8 @@ function MatchLabel() {
 function PlanCard({ tier, highlight }: { tier: CallCenterTier; highlight: boolean }) {
   const pbx = pbxTiers.find((plan) => plan.id === tier.pbxTierId)!;
   const minutes = includedMinutes(pbx);
+  // Extras attach to the PBX product inside the bundle (same rules as Cloud PBX).
+  const extras = usePlanAddons(tier.id, 'pbx');
   return (
     <div className={cardClasses(highlight, !!tier.popular)} data-card={tier.id} data-highlighted={highlight || undefined}>
       {highlight && <MatchLabel />}
@@ -63,14 +66,17 @@ function PlanCard({ tier, highlight }: { tier: CallCenterTier; highlight: boolea
       </ul>
       {tier.footnote && <p className="mt-3 text-xs text-navy-700">{tier.footnote}</p>}
 
-      {/* Same extras rules as Cloud PBX: IVR included, the rest coming soon. */}
-      <AddonToggles family="pbx" selected={[]} onToggle={() => {}} compact />
+      {/* Same extras rules as Cloud PBX: IVR included, call blocking and fax as toggles. */}
+      <AddonToggles family="pbx" selected={extras.selected} onToggle={extras.toggle} compact />
 
+      <p data-testid="order-summary" className="mt-6 text-xs font-semibold text-navy-900">
+        {orderSummary(tier.name, 'pbx', extras.selected)}
+      </p>
       <OrderButton
         plan={{ whmcsBid: tier.whmcsBid }}
-        url={orderCartUrl([{ whmcsBid: tier.whmcsBid }])}
+        url={buildOrderLink({ whmcsBid: tier.whmcsBid }, 'pbx', extras.selected)}
         variant={tier.popular ? 'primary' : 'ghost'}
-        className="mt-6 w-full"
+        className="mt-3 w-full"
       >
         Order Now
       </OrderButton>
