@@ -3,20 +3,6 @@ import {
   QueueIcon,
   MenuTreeIcon,
   RecordDotIcon,
-  DashboardIcon,
-  ContactPopIcon,
-  TranscriptIcon,
-  ReportIcon,
-  RouteIcon,
-  HandshakeIcon,
-  CalendarClockIcon,
-  ShieldIcon,
-  HotDeskIcon,
-  ConferenceIcon,
-  HolidayCalendarIcon,
-  CallBackIcon,
-  CheckCircleIcon,
-  AiSparkleIcon,
 } from '@/components/icons';
 
 // Single source of truth for every plan/tier shown on the site.
@@ -635,326 +621,88 @@ export const addons: Addon[] = [
   },
 ];
 
-// --- Call center features — roadmap framing, tied to the CommHub direction ---
-// These are positioned as where Kiatri's call-center layer is headed, built on
-// top of the PBX/trunk foundation above. Do not present as fully live without
-// confirming current feature status first.
-export interface RoadmapFeature {
+// --- Call center ----------------------------------------------------------
+// Two self-serve call centre plans, each a bundle of a phone system tier plus
+// the call centre features at one flat monthly price. Only features that are
+// live today are listed on a plan; everything else is on the roadmap list.
+export interface CallCenterFeature {
   name: string;
   description: string;
-  status: 'available' | 'roadmap';
-  // One distinct icon per feature rather than a repeated checkmark — falls
-  // back to CheckIcon in the renderer if omitted.
-  icon?: ComponentType<{ className?: string }>;
+  icon: ComponentType<{ className?: string }>;
 }
 
-export const callCenterFeatures: RoadmapFeature[] = [
+// Live today.
+export const callCenterFeatures: CallCenterFeature[] = [
   {
     name: 'Call queues',
     description: 'Route inbound calls into a queue with hold music and position announcements.',
-    status: 'available',
     icon: QueueIcon,
   },
   {
     name: 'IVR / auto-attendant',
     description: 'Build multi-level menus so callers reach the right person or team on the first try.',
-    status: 'available',
     icon: MenuTreeIcon,
   },
   {
     name: 'Call recording',
     description: 'Record and archive calls for training, quality, and dispute resolution.',
-    status: 'available',
     icon: RecordDotIcon,
-  },
-  {
-    name: 'Live wallboards',
-    description: 'Real-time queue and agent stats on a shared screen for the floor.',
-    status: 'roadmap',
-    icon: DashboardIcon,
-  },
-  {
-    name: 'CRM-aware call pop',
-    description: 'Surface caller context automatically as calls come in.',
-    status: 'roadmap',
-    icon: ContactPopIcon,
-  },
-  {
-    name: 'Hot Desking',
-    description: 'Any team member logs into any phone and gets their own extension — ideal for shared or flexible office space.',
-    status: 'roadmap',
-    icon: HotDeskIcon,
-    // FusionPBX native capability, but not yet configured/tested in our own
-    // multi-tenant deployment — do not mark Available until confirmed working.
-  },
-  {
-    name: 'Audio Conferencing',
-    description: 'PIN-protected conference calls with recording, for distributed teams across provinces.',
-    status: 'roadmap',
-    icon: ConferenceIcon,
-    // Native FusionPBX capability, same testing caveat as Hot Desking above.
-  },
-  {
-    name: 'Holiday-Aware Routing',
-    description:
-      "After-hours and holiday call handling pre-loaded with South Africa's actual public holidays — not a generic global calendar you have to configure yourself.",
-    status: 'roadmap',
-    icon: HolidayCalendarIcon,
-    // Built on FusionPBX's native Time Conditions feature; Coming Soon until
-    // the SA holiday calendar is actually populated and tested.
-  },
-  {
-    name: 'Call Back Requests',
-    description:
-      "A customer clicks \"call me back\" on your website or WhatsApp — we dial them, and connect them straight into your queue the moment they answer, so they never lose their place in line.",
-    status: 'roadmap',
-    icon: CallBackIcon,
-    // Confirmed native FreeSWITCH/FusionPBX capability, not custom-built
-    // telephony logic — but needs a real website/WhatsApp integration layer
-    // built, plus testing around a known FreeSWITCH bridging quirk, before
-    // this ships. Coming Soon despite the underlying tech being proven.
   },
 ];
 
-// --- Call Center Pro & Enterprise: the two rungs above the basic Call
-// Center features above. Confirmed capability (FusionPBX docs, QueueMetrics
-// precedent) drove which features are honestly "Available" vs "Coming Soon"
-// here — see ROADMAP.md for the underlying research. None of the "Coming
-// Soon" items here have actually been built/tested in our deployment yet,
-// even where the underlying capability exists in FusionPBX or is otherwise
-// well understood — don't mark them Available until they really are.
+// Coming later: one line each, never shown as a plan feature.
+export const callCenterRoadmap: string[] = [
+  'Live wallboards',
+  'CRM call pop',
+  'Hot desking',
+  'Audio conferencing',
+  'Holiday-aware routing with SA public holidays',
+  'Call-back requests',
+];
+
 export interface CallCenterTier {
   id: string;
   name: string;
   tagline: string;
-  // A short supporting line shown below the tagline — extra positioning
-  // context (sizing, examples) that doesn't belong crammed into the
-  // tagline itself.
-  note?: string;
-  priceZAR?: number; // omitted for Enterprise — custom quote instead
-  priceSuffix?: string; // defaults to '/month' in TierFeatureCard when priceZAR is set
-  priceNote?: string;
-  // Shown under the CTA button rather than near the price — used for the
-  // Pro tier's "you're billed for Essentials today" honesty note, which is
-  // about what you get for your money, not the price itself.
-  ctaNote?: string;
-  // Alternate pricing display for the Usage-Based licence tab — same
-  // features/ctaLabel as the Named tier above, just a different billing
-  // mechanism (fixed PBX+base fee, then per-minute instead of a flat
-  // per-seat total). Confirmed real via ictVoIP Billing's Package
-  // Management (per-extension metered billing with rate structures, free
-  // minutes, and markup — the same engine already powering Line Plans
-  // Pay-As-You-Go), so this is genuinely orderable, not Coming Soon.
-  // Omitted for Enterprise, which stays a custom quote regardless of
-  // licence type.
-  usagePricing?: {
-    baseZAR: number;
-    baseSuffix: string;
-    priceNote: string;
-    // Own WHMCS bundle ID — the Usage-Based version bundles the same fixed
-    // PBX tier as the Named version, but is a distinct orderable SKU since
-    // its billing mechanism (base + per-minute) differs.
-    whmcsBid?: number;
-  };
-  features: RoadmapFeature[];
-  ctaLabel: string;
-  ctaHref: string; // used when there's neither whmcsBid nor whmcsPid (e.g. "/contact")
-  pricingStatus: PricingStatus;
-  // Every self-serve tier here is sold as a real WHMCS bundle (fixed PBX
-  // seat tier + Call Center features, one flat price) rather than a plain
-  // product — see the restructure note above callCenterTiers. whmcsPid is
-  // kept on the type for backward compatibility but no tier below sets it
-  // any more; Enterprise sets neither, it's quote-only.
-  whmcsBid?: number;
-  whmcsPid?: number; // unused now, see whmcsBid
+  priceZAR: number;
+  priceNote: string;
+  // The Cloud PBX tier inside the bundle — its included minutes are the
+  // bundle's included minutes (confirmed against the bundle's cart lines).
+  pbxTierId: string;
+  // Feature lines shown on the card (live features only).
+  features: string[];
+  // Optional line under the features.
+  footnote?: string;
+  whmcsBid: number;
+  popular?: boolean;
 }
 
-// Named-licence ladder — each self-serve tier is a real, complete WHMCS
-// bundle pairing a fixed PBX seat tier with Call Center features at one
-// flat price, not a per-user rate layered on top of a PBX seat you'd have
-// to buy separately (same mechanism as the Starter Office Bundle above).
-// Essentials bundles PBX 10; Pro bundles PBX 25 — the priceNote on each
-// spells out exactly what's included. See CallCenterLicenceTabs for the
-// Usage-Based tab (same bundling, base fee + per-minute instead of a flat
-// total — see `usagePricing` below) and the Concurrent tab (genuinely
-// Coming Soon, pending Hot Desking shipping first).
 export const callCenterTiers: CallCenterTier[] = [
   {
     id: 'call-center-essentials',
     name: 'Call Center Essentials',
-    tagline: 'A complete 10-seat call center — PBX and call center features in one order',
+    tagline: 'A complete 10-seat call centre: phone system and call centre features in one plan.',
     // PBX 10 (R1,040) + Essentials (R149 × 10 agents = R1,490) = R2,530.
     priceZAR: 2530,
     priceNote: 'Includes PBX 10 (10 seats) + Call Center Essentials',
-    usagePricing: {
-      // PBX 10 (R1,040) + a R49/agent base fee across 10 agents (R490),
-      // then metered per-minute on top — same bundling logic as the flat
-      // Named price, just with a variable usage component instead of a
-      // flat per-seat total.
-      baseZAR: 1530,
-      baseSuffix: '/month base (10 seats) + per-minute',
-      priceNote:
-        'Includes PBX 10 (10 seats) + Call Center Essentials base. + R0.79/min blended call-handling rate (based on real provider costs).',
-      whmcsBid: 7,
-    },
-    features: [
-      {
-        name: 'Call queues',
-        description: 'Hold music and position announcements, already included.',
-        status: 'available',
-        icon: QueueIcon,
-      },
-      {
-        name: 'IVR / auto-attendant',
-        description: 'Multi-level menus, already included.',
-        status: 'available',
-        icon: MenuTreeIcon,
-      },
-      {
-        name: 'Call recording',
-        description: 'FusionPBX native — confirmed working capability.',
-        status: 'available',
-        icon: RecordDotIcon,
-      },
-    ],
-    ctaLabel: 'Order Now',
-    ctaHref: '/contact',
-    pricingStatus: 'illustrative-pending-costing',
+    pbxTierId: 'pbx-10',
+    features: callCenterFeatures.map((feature) =>
+      feature.name === 'Call queues' ? 'Call queues with hold music and position announcements' : feature.name,
+    ),
     whmcsBid: 5,
   },
   {
     id: 'call-center-pro',
     name: 'Call Center Pro',
-    tagline: 'A complete 25-seat call center — PBX and call center features in one order',
-    note:
-      'This bundle is fixed at 25 seats via PBX 25 — talk to us if you need Pro-level call center features on a different seat count.',
+    tagline: 'A complete 25-seat call centre for growing teams.',
     // PBX 25 (R2,560) + Pro (R299 × 25 agents = R7,475) = R10,035.
     priceZAR: 10035,
     priceNote: 'Includes PBX 25 (25 seats) + Call Center Pro',
-    ctaNote: "You're billed for Essentials functionality today; Pro features activate as each one ships, at no extra charge.",
-    usagePricing: {
-      // PBX 25 (R2,560) + a R49/agent base fee across 25 agents (R1,225),
-      // then metered per-minute on top.
-      baseZAR: 3785,
-      baseSuffix: '/month base (25 seats) + per-minute',
-      priceNote:
-        'Includes PBX 25 (25 seats) + Call Center Pro base. + R0.79/min blended call-handling rate (based on real provider costs).',
-      whmcsBid: 8,
-    },
-    features: [
-      {
-        name: 'Everything in Essentials',
-        description: 'Call queues, IVR, and call recording, included as the foundation.',
-        status: 'available',
-        icon: CheckCircleIcon,
-      },
-      {
-        name: 'Call recording transcription',
-        description:
-          'FusionPBX supports this natively, but we have not yet confirmed it wired up and tested end-to-end in our own deployment.',
-        status: 'roadmap',
-        icon: TranscriptIcon,
-      },
-      {
-        name: 'Real-time agent/queue dashboard',
-        description: 'Proven feasible via a third-party precedent (QueueMetrics) — not yet built/integrated on our side.',
-        status: 'roadmap',
-        icon: DashboardIcon,
-      },
-      {
-        name: 'Exportable call reporting',
-        description: 'CSV/exportable reporting beyond basic CDRs.',
-        status: 'roadmap',
-        icon: ReportIcon,
-      },
-      {
-        name: 'Hot Desking',
-        description: 'Any team member logs into any phone and gets their own extension.',
-        status: 'roadmap',
-        icon: HotDeskIcon,
-      },
-      {
-        name: 'Audio Conferencing',
-        description: 'PIN-protected conference calls with recording.',
-        status: 'roadmap',
-        icon: ConferenceIcon,
-      },
-      {
-        name: 'Holiday-Aware Routing',
-        description: "Pre-loaded with South Africa's actual public holidays.",
-        status: 'roadmap',
-        icon: HolidayCalendarIcon,
-      },
-      {
-        name: 'Call Back Requests',
-        description: 'A customer clicks "call me back" and rejoins your queue the moment they answer.',
-        status: 'roadmap',
-        icon: CallBackIcon,
-      },
-    ],
-    ctaLabel: 'Order Now',
-    ctaHref: '/contact',
-    pricingStatus: 'illustrative-pending-costing',
+    pbxTierId: 'pbx-25',
+    features: ['Everything in Essentials, for 25 seats'],
+    footnote: 'More Pro features are on the way. See our roadmap below.',
     whmcsBid: 6,
-  },
-  {
-    id: 'enterprise',
-    name: 'Enterprise',
-    tagline:
-      'Built for large teams and specialized operations — 50+ agents, hotels, schools, multi-site businesses, and anyone needing custom capacity and routing.',
-    note:
-      "Whether it's a hotel needing room-extension routing, a school needing multi-building intercom-style paging, or a 50-agent contact center — we size the system to match, not the other way around.",
-    // No priceZAR — custom quote, matching how Genesys and DIDWW's own
-    // high-volume tiers work, and honest given we don't have real cost data
-    // at 50-agent scale yet.
-    features: [
-      {
-        name: 'Everything in Call Center Pro',
-        description: 'Essentials plus recording, transcription, dashboards, and more as each ships.',
-        status: 'available',
-        icon: CheckCircleIcon,
-      },
-      {
-        name: 'CRM-aware call pop',
-        description: 'Surface caller context automatically as calls come in.',
-        status: 'roadmap',
-        icon: ContactPopIcon,
-      },
-      {
-        name: 'Priority/overflow queue routing',
-        description: 'Multiple queues (e.g. VIP vs standard) with configurable overflow messaging.',
-        status: 'roadmap',
-        icon: RouteIcon,
-      },
-      {
-        name: 'Dedicated onboarding and capacity planning',
-        description: 'A named contact to plan and size your rollout.',
-        status: 'roadmap',
-        icon: HandshakeIcon,
-      },
-      {
-        name: 'Custom SLA',
-        description: 'An uptime and support-response commitment tailored to your contract.',
-        status: 'roadmap',
-        icon: ShieldIcon,
-      },
-      {
-        name: 'Workforce management',
-        description: 'Scheduling and forecasting — likely a build or third-party integration (e.g. QueueMetrics), not a quick win.',
-        status: 'roadmap',
-        icon: CalendarClockIcon,
-      },
-      {
-        name: 'AI Virtual Receptionist',
-        description: 'An AI that answers, understands, and routes calls — even after hours.',
-        status: 'roadmap',
-        icon: AiSparkleIcon,
-      },
-    ],
-    ctaLabel: 'Talk to us',
-    ctaHref: '/contact',
-    pricingStatus: 'illustrative-pending-costing',
-    // No whmcsPid — never self-service "Order Now" for this tier.
+    popular: true,
   },
 ];
 

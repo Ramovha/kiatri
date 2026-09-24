@@ -116,7 +116,7 @@ async function fetchBilling(): Promise<Billing> {
   }
 
   // Bundles: add each to a fresh cart and total the lines it creates.
-  for (const bid of [1, 2, 3, 4, 5, 6, 7, 8]) {
+  for (const bid of [1, 2, 3, 4, 5, 6]) {
     const jar: Jar = new Map();
     await get('/cart.php?a=add&bid=' + bid, jar);
     const lines = parseCart(await get('/cart.php?a=view', jar));
@@ -182,12 +182,7 @@ function compareAll(b: Billing) {
     compare(`${p.name} (bid ${p.whmcsBid}) setup`, 0, bundle?.setup);
   }
   for (const t of callCenterTiers) {
-    if (t.whmcsBid) {
-      compare(`${t.name} (bid ${t.whmcsBid}) monthly total`, t.priceZAR, b.bundles[t.whmcsBid]?.monthly);
-    }
-    if (t.usagePricing?.whmcsBid) {
-      compare(`${t.name} usage-based (bid ${t.usagePricing.whmcsBid}) monthly total`, t.usagePricing.baseZAR, b.bundles[t.usagePricing.whmcsBid]?.monthly);
-    }
+    compare(`${t.name} (bid ${t.whmcsBid}) monthly total`, t.priceZAR, b.bundles[t.whmcsBid]?.monthly);
   }
   for (const a of addons) {
     if (!a.whmcsAddonId) continue;
