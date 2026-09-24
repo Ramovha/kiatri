@@ -12,7 +12,6 @@ const COLUMNS = [
       { href: '/business#trunks', label: 'SIP Trunks' },
       { href: '/call-center', label: 'Call Center' },
       { href: '/voice', label: 'Home Voice' },
-      { href: '/addons', label: 'Addons' },
       { href: '/numbers', label: 'Numbers & Porting' },
     ],
   },

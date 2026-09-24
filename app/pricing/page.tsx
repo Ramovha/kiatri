@@ -5,6 +5,7 @@ import PlanBuilder from '@/components/PlanBuilder';
 import PlanComparison from '@/components/PlanComparison';
 import BusinessAccountsBlock from '@/components/BusinessAccountsBlock';
 import CTAButton from '@/components/CTAButton';
+import ExistingCustomerLine from '@/components/ExistingCustomerLine';
 import { MapPinIcon, CheckCircleIcon, TagIcon, HandsetIcon } from '@/components/icons';
 import { formatZAR } from '@/lib/format';
 import { SITE_URL, SITE_NAME, SUPPORT_EMAIL, CALL_RATE } from '@/lib/site';
@@ -140,13 +141,12 @@ export default function PricingPage() {
           <p className="mt-4 text-xs text-navy-700">
             All prices in South African rand. No VAT added. Your final price is always confirmed at checkout.
           </p>
+          <ExistingCustomerLine className="mt-4 !text-left" />
           <p className="mt-3 text-sm text-navy-700">
             Prefer to browse? See our{' '}
             <Link href="/business" className="font-semibold text-ember-600 hover:text-ember-500">business plans</Link>,{' '}
             <Link href="/voice" className="font-semibold text-ember-600 hover:text-ember-500">home voice lines</Link>,{' '}
-            <Link href="/call-center" className="font-semibold text-ember-600 hover:text-ember-500">call centre solutions</Link>{' '}
-            and{' '}
-            <Link href="/addons" className="font-semibold text-ember-600 hover:text-ember-500">addons</Link>.
+            <Link href="/call-center" className="font-semibold text-ember-600 hover:text-ember-500">call centre solutions</Link>.
           </p>
         </section>
 

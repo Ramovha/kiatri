@@ -20,6 +20,22 @@ export function readAddonUrl(): UrlSelection {
   return { plan: params.get('plan'), addonIds, style: params.get('style') };
 }
 
+// True only once per page load: client-side navigations inside the same
+// document must not re-read the original load's "reload" type.
+let bootHandled = false;
+
+// Reads the selection for the first time on a page. A reload starts clean:
+// the addons are dropped from the address and nothing is restored. Back,
+// forward and shared links restore the selection.
+export function readInitialAddonUrl(): UrlSelection {
+  if (!bootHandled) {
+    bootHandled = true;
+    const nav = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined;
+    if (nav?.type === 'reload') removeAddonParams();
+  }
+  return readAddonUrl();
+}
+
 // Removes the addon selection from the address (used when the page is
 // reloaded), keeping the plan, other parameters and the #hash.
 export function removeAddonParams() {

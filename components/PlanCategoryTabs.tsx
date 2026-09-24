@@ -1,11 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { Plan } from '@/lib/products';
 import PricingCard from './PricingCard';
-import { AddonLockProvider, AddonLockBar, useAddonLock } from './AddonLock';
-import { familyOfPlanId } from '@/lib/addons';
-import { addonNames } from '@/lib/addons';
 import ChannelVisualizer from './ChannelVisualizer';
 import BillingPeriodToggle from './BillingPeriodToggle';
 import { parseChannelCount, BillingPeriod } from '@/lib/format';
@@ -20,22 +17,14 @@ export interface PlanCategory {
   // for SIP Trunk Plans and Line Plans, where the channels/seats
   // distinction genuinely confuses people.
   visualizerPlan?: Plan;
+  // Shown under this category's cards when it is the open tab.
+  footer?: ReactNode;
 }
 
 // A pill-style segmented switcher (one category visible at a time) instead
 // of stacking every product line on the page — keeps the page short while
 // still showing each plan as one self-contained card.
 export default function PlanCategoryTabs({ categories }: { categories: PlanCategory[] }) {
-  return (
-    <AddonLockProvider>
-      <AddonLockBar />
-      <PlanCategoryTabsInner categories={categories} />
-    </AddonLockProvider>
-  );
-}
-
-function PlanCategoryTabsInner({ categories }: { categories: PlanCategory[] }) {
-  const lock = useAddonLock();
   const [activeId, setActiveId] = useState(categories[0]?.id);
   const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>('monthly');
   const [highlightId, setHighlightId] = useState<string | null>(null);
@@ -82,26 +71,18 @@ function PlanCategoryTabsInner({ categories }: { categories: PlanCategory[] }) {
     <div>
       <div className="flex justify-center">
         <div className="inline-flex flex-wrap justify-center gap-1 rounded-full border border-navy-900/10 bg-navy-950 p-1 shadow-card">
-          {categories.map((category) => {
-            // A tab whose plans don't work with the selected addons is greyed
-            // out (still viewable, so the reason and the "Remove" link show).
-            const family = familyOfPlanId(category.plans[0]?.id ?? '');
-            const blockers = family ? lock.blockers(family) : [];
-            return (
-              <button
-                key={category.id}
-                type="button"
-                onClick={() => setActiveId(category.id)}
-                data-locked={blockers.length > 0 || undefined}
-                title={blockers.length > 0 ? `Not available with ${addonNames(blockers)}` : undefined}
-                className={`rounded-full px-5 py-2.5 text-sm font-semibold transition ${
-                  category.id === active.id ? 'bg-white text-navy-900' : 'text-navy-200 hover:text-white'
-                } ${blockers.length > 0 ? 'opacity-50' : ''}`}
-              >
-                {category.label}
-              </button>
-            );
-          })}
+          {categories.map((category) => (
+            <button
+              key={category.id}
+              type="button"
+              onClick={() => setActiveId(category.id)}
+              className={`rounded-full px-5 py-2.5 text-sm font-semibold transition ${
+                category.id === active.id ? 'bg-white text-navy-900' : 'text-navy-200 hover:text-white'
+              }`}
+            >
+              {category.label}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -133,6 +114,8 @@ function PlanCategoryTabsInner({ categories }: { categories: PlanCategory[] }) {
           />
         </div>
       )}
+
+      {active.footer && <div className="mt-8">{active.footer}</div>}
     </div>
   );
 }

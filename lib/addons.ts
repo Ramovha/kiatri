@@ -87,14 +87,6 @@ export function addonAvailability(addon: Addon, family: PlanFamily): Availabilit
   return { state: 'available' };
 }
 
-// "Works with: Business Line · Cloud PBX · SIP Trunk"
-export function worksWith(addon: Addon): string[] {
-  return PLAN_FAMILIES.filter((f) => {
-    const rule = ELIGIBILITY[addon.id]?.[f.family];
-    return rule === 'eligible' || rule === 'included';
-  }).map((f) => f.label);
-}
-
 // ---- display and ordering --------------------------------------------------
 
 // Every addon in display order.
@@ -129,22 +121,21 @@ interface OrderableLike {
   comingSoon?: boolean;
 }
 
-// ---- the addon lock -------------------------------------------------------
+// ---- safety helpers ---------------------------------------------------------
 
 // A plan family "works with" an addon when the addon can be switched on for it
 // or comes with it (Cloud PBX includes IVR). Anything else — not offered, or
-// coming soon — does not.
+// coming soon — does not. Plan cards only ever show addons that work with the
+// plan, so this is the safety net behind buildOrderLink().
 export function worksWithAddon(addon: Addon, family: PlanFamily): boolean {
   const { state } = addonAvailability(addon, family);
   return state === 'available' || state === 'included';
 }
 
-// The selected addons a plan family cannot take. Empty = the plan is orderable.
-export function lockBlockers(family: PlanFamily, selectedIds: string[]): Addon[] {
+// The selected addons a plan family cannot take.
+export function unsupportedAddons(family: PlanFamily, selectedIds: string[]): Addon[] {
   return builderAddons.filter((addon) => selectedIds.includes(addon.id) && !worksWithAddon(addon, family));
 }
-
-export const planQualifies = (family: PlanFamily, selectedIds: string[]) => lockBlockers(family, selectedIds).length === 0;
 
 // "Virtual Receptionist (IVR), CallerID Block/Blacklist"
 export const addonNames = (addons: Addon[]) => addons.map((addon) => addon.name).join(', ');
@@ -167,7 +158,7 @@ export function orderSummary(planName: string, family: PlanFamily, selectedIds: 
 // button disabled. Returns null too when anything in the order has no order
 // link yet.
 export function buildOrderLink(plan: OrderableLike, family: PlanFamily, addonIds: string[], extras: OrderableLike[] = []): string | null {
-  const blockers = lockBlockers(family, addonIds);
+  const blockers = unsupportedAddons(family, addonIds);
   if (blockers.length > 0) {
     console.error(`buildOrderLink: ${labelFromFamily(family)} doesn't work with ${addonNames(blockers)}; not building a link.`);
     return null;

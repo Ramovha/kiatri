@@ -61,11 +61,9 @@ function getRecommendation(seats: SeatAnswer, need: NeedAnswer, volume: VolumeAn
     }
     return {
       title: 'Line 200 + Virtual Receptionist addon',
-      description: 'A single line, plus an auto-attendant menu so it still sounds like a real business.',
+      description: 'A single line, plus the Virtual Receptionist switched on when you choose your plan, so it still sounds like a real business.',
       href: '/business#line',
       ctaLabel: 'See Line Plans',
-      secondaryHref: '/addons',
-      secondaryLabel: 'See the Virtual Receptionist addon',
     };
   }
 
