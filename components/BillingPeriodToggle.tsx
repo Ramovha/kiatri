@@ -25,7 +25,6 @@ export default function BillingPeriodToggle({
         activeId={billingPeriod}
         onChange={(id) => onChange(id as BillingPeriod)}
       />
-      <p className="text-xs text-navy-400">Illustrative discount — confirm final rate before launch</p>
     </div>
   );
 }
