@@ -39,9 +39,9 @@ export default function Hero() {
           </div>
 
           <div className="mt-6 flex flex-wrap gap-4">
-            <CTAButton href="/pricing">See pricing</CTAButton>
-            <CTAButton href="/products" variant="ghost" className="border-white/25 text-white hover:border-white/60">
-              Explore products
+            <CTAButton href="/get-started">Get Started</CTAButton>
+            <CTAButton href="/business" variant="ghost" className="border-white/25 text-white hover:border-white/60">
+              See all plans
             </CTAButton>
           </div>
 

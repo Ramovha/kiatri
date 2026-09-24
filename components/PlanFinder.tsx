@@ -8,12 +8,12 @@ type Audience = 'home' | 'business';
 
 // Kiatri doesn't sell fibre, so there's no address/coverage check to run —
 // the equivalent quick-start question for a phone system is "how many
-// people need a line", which maps straight to a PBX tier or the single-line
-// small-office plans.
+// people need a line". The tabbed tier browser lives on /business, so every
+// option below just deep-links to the right tab there.
 const SIZE_OPTIONS = [
-  { value: 'small', label: '2–5 people', href: '/products#pbx-5' },
-  { value: 'medium', label: '6–15 people', href: '/products#pbx-10' },
-  { value: 'large', label: '16+ people', href: '/products#pbx-25' },
+  { value: 'small', label: '2–5 people', href: '/business#voip' },
+  { value: 'medium', label: '6–15 people', href: '/business#voip' },
+  { value: 'large', label: '16+ people', href: '/business#voip' },
 ];
 
 export default function PlanFinder() {
@@ -24,11 +24,11 @@ export default function PlanFinder() {
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
     if (audience === 'home') {
-      router.push('/small-business#plans');
+      router.push('/voice');
       return;
     }
     const target = SIZE_OPTIONS.find((option) => option.value === size);
-    router.push(target ? target.href : '/products#pbx');
+    router.push(target ? target.href : '/business#voip');
   }
 
   return (

@@ -20,9 +20,18 @@ const config: Config = {
           500: '#FF8A3D',
           600: '#F5731F',
         },
+        // A second, deliberately distinct accent used only for the Call
+        // Center / advanced-tier content — signals "this is the upgraded
+        // layer" rather than reusing ember everywhere on the site.
+        signal: {
+          300: '#7DEAD6',
+          400: '#4CD9BE',
+          500: '#22C1A3',
+        },
       },
       fontFamily: {
         sans: ['var(--font-sans)', 'system-ui', 'sans-serif'],
+        display: ['var(--font-display)', 'var(--font-sans)', 'system-ui', 'sans-serif'],
       },
       boxShadow: {
         card: '0 1px 2px rgba(7,14,28,0.04), 0 8px 24px -8px rgba(7,14,28,0.12)',

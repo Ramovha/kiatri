@@ -70,6 +70,50 @@ Once real ZAR pricing is finalized:
    so you can gate them on that field if you want some plans final and others
    still pending during a phased rollout.
 
+## 2a. DIDWW cost research — confirmed vs still-open items (required)
+
+`lib/products.ts` → `linePlans` (Pay-As-You-Go, Line 200, Line 800) pricing was
+last revised against a real DIDWW sandbox quote and 2026 South African market
+rates, not a pure currency conversion. Confirmed so far:
+
+- Setup/NRC: R0.00 (DIDWW waives it on API-driven orders, which is how
+  ictVoIP Box orders — reliable, not a fluke).
+- Monthly DID rental (MRC): R13.02/month ($0.80 @ R16.27/USD).
+- Inbound per-minute rate: R0.163/min ($0.01/min).
+
+Still open — **confirm before treating `linePlans` pricing as final**:
+
+1. **Outbound termination rate is not public.** DIDWW requires this be
+   enabled via their sales team and pulled from the account portal (SIP
+   Trunking → Rates → South Africa). The R0.35–R0.45/min PayGo sell rate in
+   `linePlans` assumes outbound cost is roughly the same order of magnitude
+   as the confirmed inbound rate — a placeholder, not a real cost basis.
+   Outbound and inbound are often priced differently; get the real number
+   before finalizing.
+2. **DID+0 vs DID+2 not confirmed.** DIDWW numbers come in two types — DID+0
+   (no bundled voice channels, capacity bought separately, lower MRC) or
+   DID+2 (2 dedicated channels bundled in, higher MRC). Which type the
+   R13.02/month quote represents hasn't been confirmed — this affects what
+   capacity a customer actually gets for that price.
+3. **Provincial coverage: only 4 of 9 confirmed.** Gauteng, KwaZulu-Natal,
+   Western Cape, and Eastern Cape are confirmed available via real DID
+   numbers seen in sandbox order history. Free State, Mpumalanga, North
+   West, Northern Cape, and Limpopo are **not yet confirmed** — DIDWW's
+   public pages don't list coverage, only their live DID Search tool does
+   (ictVoIP Box → DID Search → South Africa → Region/Province dropdown).
+   **Do not claim or imply nationwide South African coverage anywhere on
+   the site until this is verified** — current copy is intentionally scoped
+   to "major cities" rather than a national claim; keep it that way until
+   confirmed.
+4. **$30 minimum DIDWW account balance** to activate production (~R488
+   one-time) is an operational cost to Kiatri, not something to pass to
+   customers or mention in customer-facing copy.
+
+Once the real outbound rate and DID type are confirmed, rebuild the PayGo
+per-minute sell rate using ictVoIP's own formula — `Final Rate = (Base +
+Custom) × (1 + Markup%)` — rather than the current placeholder, and update
+the rate bullet in `linePlans[0].features` in `lib/products.ts` to match.
+
 ## 3. Replace `[REPLACE WITH REAL DATA]` placeholders (required)
 
 Search the codebase for `REPLACE WITH REAL DATA` — every hit is a spot where
@@ -79,9 +123,15 @@ we deliberately avoided inventing a number, testimonial, or contact detail:
 grep -rn "REPLACE WITH REAL DATA" app components
 ```
 
-This includes: trust-bar stats on the Home page, the About page support
-hours, the Contact page phone number/email, the Business page SLA figure and
-integrations list.
+This includes: the About page support hours, the Contact page phone
+number/email, the Business page SLA figure and integrations list.
+
+Two sections aren't currently rendered at all rather than showing visible
+placeholder text: the Home page's trust-bar stats (`components/TrustBar.tsx`
+— uptime/response-time/review-score/customer-count) and its social-proof
+section (testimonials/logos). Once real data exists for either, re-enable it
+in `app/page.tsx` (the `<TrustBar />` import/render, and the commented-out
+social-proof section) — see the comments there for exactly what to restore.
 
 ## 4. Legal pages (required — do not launch without this)
 
@@ -113,6 +163,31 @@ branding:
   real logo (SVG preferred, inlined or in `public/`).
 - Set a real font in `app/globals.css` (`--font-sans`) and `app/layout.tsx`
   if you don't want the system-font fallback.
+
+## 4a. Site structure — /pricing is canonical (post-consolidation)
+
+The site previously had the same plan data duplicated across three pages. It
+now works like this:
+
+- **`/pricing`** — the single canonical page for every plan tier: VoIP
+  Plans (PBX), Line Plans, SIP Trunk Plans, Residential — via the tabbed
+  `PlanCategoryTabs` switcher (`components/PlanCategoryTabs.tsx`), plus the
+  Call Center section and the bundled starter-price example. Every "Order
+  Now" / "see pricing" link site-wide should point here.
+- **`/business`** — narrative-only: SLA/support/trust pillars and the
+  "VoIP Business Services" feature tour. It does **not** show plan tables —
+  link to `/pricing` for those.
+- **`/addons`** — standalone page for attachable extras (CallerID Block,
+  Virtual Receptionist, Caller ID Lookup, Virtual Fax).
+- **`/products`** and **`/small-business`** — retired. Each is now a thin
+  redirect stub (meta-refresh + a link) pointing at `/pricing`
+  (`/small-business` → `/pricing#line`), and `netlify.toml` carries a real
+  301 for both on the deployed site. Keep both mechanisms — the static
+  fallback page covers any host that doesn't apply Netlify's redirect rules.
+- Tabs deep-link via URL hash: `/pricing#voip`, `#line`, `#trunks`,
+  `#residential` each preselect that tab (see the `useEffect` in
+  `PlanCategoryTabs.tsx`) and `/pricing#call-center` scrolls to the Call
+  Center section. Use these exact hashes when linking to a specific tab.
 
 ## 6a. Still-missing pages (deliberately deferred, not oversights)
 
@@ -162,8 +237,10 @@ or any static host if you change hosts later.
 ## Verifying before launch
 
 - `npm run build` completes without errors.
-- Click through all pages in `npm run dev` — Home, Products, Pricing,
-  Business, Small Business, About, Contact, and all three Legal pages.
+- Click through all pages in `npm run dev` — Home, Pricing (all four tabs:
+  VoIP, Line, Trunk, Residential), Addons, Business, About, Contact, FAQ,
+  Security, Numbers, and all three Legal pages. Also confirm `/products` and
+  `/small-business` redirect to `/pricing` (and `/pricing#line`).
 - Confirm every "Order Now"/"Get Started" button lands on the correct
   `calling.kiatri.com/cart.php?a=add&pid=...` URL with the **real** product
   ID once you've completed step 1 above.

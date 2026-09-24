@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import CoverageMap from '@/components/CoverageMap';
 import { ClockIcon, MapPinIcon, ShieldIcon } from '@/components/icons';
 
 export const metadata: Metadata = {
@@ -45,6 +46,13 @@ export default function AboutPage() {
           detail for a procurement or compliance review, contact us directly and we&apos;ll work through it
           with you under NDA if required. See <Link href="/security" className="font-medium text-ember-600 hover:text-ember-500">Security &amp; Compliance</Link> for more on data protection and POPIA.
         </p>
+      </div>
+
+      <div className="mt-8">
+        <CoverageMap />
+      </div>
+
+      <div className="mt-12 space-y-4 text-navy-700">
         <h2 className="text-xl font-bold text-navy-900">Billing &amp; account management</h2>
         <p>
           Orders, invoices, and account management run through our billing portal at{' '}

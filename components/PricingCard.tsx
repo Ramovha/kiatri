@@ -1,39 +1,75 @@
 import { Plan } from '@/lib/products';
 import { orderProductUrl } from '@/lib/whmcs';
-import { formatZAR } from '@/lib/format';
+import { formatZAR, yearlyMonthlyEquivalent, BillingPeriod } from '@/lib/format';
 import { CheckIcon } from './icons';
 import CTAButton from './CTAButton';
 
-export default function PricingCard({ plan }: { plan: Plan }) {
+export default function PricingCard({
+  plan,
+  billingPeriod = 'monthly',
+}: {
+  plan: Plan;
+  billingPeriod?: BillingPeriod;
+}) {
+  const isYearly = billingPeriod === 'yearly';
+  const displayPriceZAR =
+    typeof plan.priceZAR === 'number' && isYearly ? yearlyMonthlyEquivalent(plan.priceZAR) : plan.priceZAR;
+
   return (
     <div
-      className={`flex flex-col rounded-2xl border bg-white p-6 shadow-card ${
-        plan.popular ? 'border-ember-500 ring-1 ring-ember-500' : 'border-navy-900/10'
+      className={`relative flex h-full flex-col overflow-hidden rounded-2xl border bg-white p-6 shadow-card ${
+        plan.popular ? 'border-ember-500' : 'border-navy-900/10'
       }`}
     >
       {plan.popular && (
-        <span className="mb-3 inline-block w-fit rounded-full bg-ember-500 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white">
-          Most popular
-        </span>
+        // A corner ribbon rather than an inline pill — "Most Popular" reads
+        // as genuinely more important than a muted "Coming soon" label, and
+        // being out-of-flow means it doesn't push this card's content down
+        // relative to its neighbors in the same row (the old inline badge did).
+        <div
+          className="absolute right-[-34px] top-[18px] w-[140px] rotate-45 bg-ember-500 py-1 text-center text-[10px] font-bold uppercase tracking-wider text-white shadow-sm"
+          aria-hidden
+        >
+          Most Popular
+        </div>
+      )}
+      {plan.popular && <span className="sr-only">Most popular</span>}
+      {plan.segment && (
+        <p className="text-xs font-semibold uppercase tracking-wide text-navy-400">{plan.segment}</p>
       )}
       <h3 className="text-lg font-bold text-navy-900">{plan.name}</h3>
       <p className="mt-1 text-sm text-navy-700">{plan.tagline}</p>
 
-      <div className="mt-4 flex items-baseline gap-1">
-        <span className="text-3xl font-extrabold text-navy-900">{formatZAR(plan.priceZAR)}</span>
-        <span className="text-sm text-navy-700">/month</span>
-      </div>
-      <p className="mt-1 text-xs text-navy-400">Illustrative — see pricing page for details</p>
+      {typeof displayPriceZAR === 'number' ? (
+        <>
+          <div className="mt-4 flex items-baseline gap-1">
+            <span className="text-3xl font-extrabold text-navy-900">{formatZAR(displayPriceZAR)}</span>
+            <span className="text-sm text-navy-700">/month</span>
+          </div>
+          {isYearly && <p className="mt-1 text-xs font-medium text-ember-600">Billed annually</p>}
+          {plan.billingNote && (
+            <p className="mt-1 text-xs font-medium text-ember-600">{plan.billingNote}</p>
+          )}
+          <p className="mt-1 text-xs text-navy-400">Illustrative — see pricing page for details</p>
+        </>
+      ) : (
+        <p className="mt-4 text-2xl font-extrabold text-navy-900">Talk to us</p>
+      )}
 
       <dl className="mt-5 grid grid-cols-2 gap-3 border-y border-navy-900/10 py-4 text-sm">
-        <div>
-          <dt className="text-navy-400">Minutes</dt>
+        <div className={plan.hideCapacityRow ? 'col-span-2' : undefined}>
+          <dt className="text-navy-400">{plan.minutesLabel ?? 'Minutes'}</dt>
           <dd className="font-medium text-navy-900">{plan.minutesIncluded}</dd>
         </div>
-        <div>
-          <dt className="text-navy-400">Capacity</dt>
-          <dd className="font-medium text-navy-900">{plan.capacity}</dd>
-        </div>
+        {!plan.hideCapacityRow && (
+          <div>
+            <dt className="text-navy-400">{plan.capacityLabel ?? 'Capacity'}</dt>
+            <dd className="font-medium text-navy-900">{plan.capacity}</dd>
+          </div>
+        )}
+        {plan.overageNote && (
+          <p className="col-span-2 text-xs leading-snug text-navy-400">{plan.overageNote}</p>
+        )}
         <div className="col-span-2">
           <dt className="text-navy-400">Number</dt>
           <dd className="font-medium text-navy-900">{plan.didIncluded}</dd>
@@ -49,14 +85,24 @@ export default function PricingCard({ plan }: { plan: Plan }) {
         ))}
       </ul>
 
-      <CTAButton
-        href={orderProductUrl(plan.whmcsPid)}
-        external
-        variant={plan.popular ? 'primary' : 'ghost'}
-        className="mt-6 w-full"
-      >
-        Order Now
-      </CTAButton>
+      {plan.balanceNote && (
+        <p className="mt-4 text-xs text-navy-700">{plan.balanceNote}</p>
+      )}
+
+      {plan.whmcsPid ? (
+        <CTAButton
+          href={orderProductUrl(plan.whmcsPid, isYearly ? 'annually' : 'monthly')}
+          external
+          variant={plan.popular ? 'primary' : 'ghost'}
+          className="mt-6 w-full"
+        >
+          {plan.ctaLabel ?? 'Order Now'}
+        </CTAButton>
+      ) : (
+        <CTAButton href={plan.ctaHref ?? '/contact'} variant={plan.popular ? 'primary' : 'ghost'} className="mt-6 w-full">
+          {plan.ctaLabel ?? 'Talk to us'}
+        </CTAButton>
+      )}
     </div>
   );
 }

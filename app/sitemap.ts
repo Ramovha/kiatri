@@ -3,10 +3,12 @@ import { SITE_URL } from '@/lib/site';
 
 const ROUTES = [
   { path: '', priority: 1 },
-  { path: '/products', priority: 0.9 },
+  { path: '/get-started', priority: 0.9 },
   { path: '/pricing', priority: 0.9 },
+  { path: '/voice', priority: 0.8 },
   { path: '/business', priority: 0.8 },
-  { path: '/small-business', priority: 0.8 },
+  { path: '/call-center', priority: 0.8 },
+  { path: '/addons', priority: 0.7 },
   { path: '/numbers', priority: 0.6 },
   { path: '/security', priority: 0.6 },
   { path: '/faq', priority: 0.6 },

@@ -1,78 +1,73 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
+import PromoBanner from '@/components/PromoBanner';
+import PlanBuilder from '@/components/PlanBuilder';
 import PricingDisclaimer from '@/components/PricingDisclaimer';
-import ItemizedPriceRow from '@/components/ItemizedPriceRow';
-import { pbxTiers, trunkPlans, voipPlans } from '@/lib/products';
-import { formatZAR } from '@/lib/format';
 import CTAButton from '@/components/CTAButton';
+import { linePlans } from '@/lib/products';
+import { formatZAR } from '@/lib/format';
+
+const cheapestLine = [...linePlans].sort((a, b) => (a.priceZAR ?? 0) - (b.priceZAR ?? 0))[0];
 
 export const metadata: Metadata = {
   title: 'Pricing',
-  description: 'Itemized Kiatri pricing — seats and calling capacity shown separately, like a phone bill.',
+  description: 'Configure your Cloud PBX, Line, or SIP Trunk setup and see the real monthly cost.',
 };
 
-// A representative "starting from" combo for the headline: cheapest PBX tier
-// + cheapest trunk tier, purely illustrative of how the combined cost reads.
-const cheapestPbx = pbxTiers[0];
-const cheapestTrunk = trunkPlans[0];
-const combinedFrom = cheapestPbx.priceZAR + cheapestTrunk.priceZAR;
+// This page has one job: the interactive "configure and see the cost" tool.
+// Browsing/comparing tier cards, the Call Center Pro/Enterprise upsell, and
+// the "Which plan fits you" guided quiz all live on /business now — those
+// are decision-making/browsing content, not calculating, and mixing them in
+// here was the actual source of confusion, not the builder itself. This
+// page cross-links to /business for that; /business cross-links back here
+// for the exact-cost calculator.
 
 export default function PricingPage() {
   return (
-    <div className="mx-auto max-w-4xl px-6 py-16">
-      <h1 className="text-3xl font-bold text-navy-900 md:text-4xl">Pricing</h1>
-      <p className="mt-3 text-navy-700">
-        Most providers bury seats and calling capacity behind one blended number. We show them separately —
-        like a phone contract splits the device from the airtime — so you know exactly what you&apos;re
-        paying for.
-      </p>
+    <>
+      <PromoBanner
+        eyebrow="Pricing"
+        headlineLead="Straightforward pricing,"
+        headlineAccent="nothing to decode."
+        description="Every plan is priced and ordered separately — no bundled number you can't break down. Build your setup below and see exactly what you're paying for."
+        priceLabel="Line plans start from"
+        priceValue={formatZAR(cheapestLine.priceZAR ?? 0)}
+        priceSuffix="/month line fee"
+        priceNote="Illustrative — see the full breakdown below"
+        ctaLabel="Build your setup"
+        ctaHref="#builder"
+      />
 
-      <div className="mt-6 rounded-2xl border border-navy-900/10 bg-white p-6 shadow-card">
-        <p className="text-sm text-navy-700">A typical small-office setup starts from</p>
-        <p className="mt-1 text-4xl font-extrabold text-navy-900">
-          {formatZAR(combinedFrom)}
-          <span className="text-base font-normal text-navy-700">/month</span>
+      <div className="mx-auto max-w-6xl px-6 py-16">
+        <p className="text-sm text-navy-700">
+          Want to browse and compare tiers side by side first? See our{' '}
+          <Link href="/business#plans" className="font-semibold text-ember-600 hover:text-ember-500">
+            Business plans
+          </Link>
+          .
         </p>
-        <p className="mt-1 text-sm text-navy-700">
-          {cheapestPbx.name} ({cheapestPbx.capacity}) + {cheapestTrunk.name} ({cheapestTrunk.minutesIncluded})
-        </p>
-        <PricingDisclaimer className="mt-4" />
+
+        <div id="builder" className="scroll-mt-24 mt-6">
+          <PlanBuilder />
+          <PricingDisclaimer className="mt-4" />
+        </div>
+
+        <section className="mt-14">
+          <div className="flex flex-col items-start gap-4 rounded-2xl border border-navy-900/10 bg-navy-100/40 p-6 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="font-bold text-navy-900">Need more than a line?</h2>
+              <p className="mt-1 text-sm text-navy-700">
+                Call blocking, a virtual receptionist, virtual fax, and more — browse{' '}
+                <Link href="/addons" className="font-semibold text-ember-600 hover:text-ember-500">
+                  Addons
+                </Link>{' '}
+                to attach to any plan above.
+              </p>
+            </div>
+            <CTAButton href="/addons" variant="ghost" className="flex-none">Browse Addons</CTAButton>
+          </div>
+        </section>
       </div>
-
-      <section className="mt-12">
-        <h2 className="text-xl font-bold text-navy-900">Cloud PBX seats</h2>
-        <p className="mt-1 text-sm text-navy-700">What you pay for extensions, the admin portal, and instant provisioning.</p>
-        <div className="mt-4">
-          {pbxTiers.map((plan) => (
-            <ItemizedPriceRow key={plan.id} plan={plan} />
-          ))}
-        </div>
-      </section>
-
-      <section className="mt-12">
-        <h2 className="text-xl font-bold text-navy-900">SIP trunk calling capacity</h2>
-        <p className="mt-1 text-sm text-navy-700">What you pay for channels and bulk minutes — sized independently of seats.</p>
-        <div className="mt-4">
-          {trunkPlans.map((plan) => (
-            <ItemizedPriceRow key={plan.id} plan={plan} />
-          ))}
-        </div>
-      </section>
-
-      <section className="mt-12">
-        <h2 className="text-xl font-bold text-navy-900">Home &amp; small office VoIP lines</h2>
-        <p className="mt-1 text-sm text-navy-700">A single SIP line with a bundled minute allowance — no PBX required.</p>
-        <div className="mt-4">
-          {voipPlans.map((plan) => (
-            <ItemizedPriceRow key={plan.id} plan={plan} />
-          ))}
-        </div>
-      </section>
-
-      <div className="mt-14 rounded-2xl bg-navy-950 p-8 text-center text-white">
-        <h2 className="text-xl font-bold">Not sure what combination you need?</h2>
-        <p className="mt-2 text-navy-200">Tell us your seat count and expected call volume and we&apos;ll size it for you.</p>
-        <CTAButton href="/contact" className="mt-5">Talk to us</CTAButton>
-      </div>
-    </div>
+    </>
   );
 }

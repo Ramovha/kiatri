@@ -1,26 +1,25 @@
+'use client';
+
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { LogoMarkInverse } from './icons/Logo';
 
 const COLUMNS = [
   {
     title: 'Product',
     links: [
-      { href: '/products', label: 'Cloud PBX' },
-      { href: '/products#trunks', label: 'SIP Trunks' },
-      { href: '/products#call-center', label: 'Call Center' },
-      { href: '/pricing', label: 'Pricing' },
+      { href: '/pricing', label: 'Plans & Pricing' },
+      { href: '/business#trunks', label: 'SIP Trunks' },
+      { href: '/call-center', label: 'Call Center' },
+      { href: '/voice', label: 'Home Voice' },
+      { href: '/addons', label: 'Addons' },
       { href: '/numbers', label: 'Numbers & Porting' },
-    ],
-  },
-  {
-    title: 'Solutions',
-    links: [
-      { href: '/business', label: 'For Business' },
-      { href: '/small-business', label: 'For Small Business' },
     ],
   },
   {
     title: 'Company',
     links: [
+      { href: '/business', label: 'For Business' },
       { href: '/about', label: 'About & Trust' },
       { href: '/security', label: 'Security & Compliance' },
       { href: '/faq', label: 'FAQ' },
@@ -38,15 +37,18 @@ const COLUMNS = [
 ];
 
 export default function Footer() {
+  // Same reasoning as Header — /get-started is a focused conversion page,
+  // not a browsing page, so the full footer doesn't belong in the flow.
+  const pathname = usePathname();
+  if (pathname?.startsWith('/get-started')) return null;
+
   return (
     <footer className="border-t border-navy-900/10 bg-navy-950 text-navy-100">
       <div className="mx-auto max-w-6xl px-6 py-14">
-        <div className="grid grid-cols-2 gap-8 md:grid-cols-5">
+        <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
           <div className="col-span-2 md:col-span-1">
-            <div className="flex items-center gap-2 text-lg font-bold text-white">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-ember-500 text-white">
-                k
-              </span>
+            <div className="flex items-center gap-2.5 font-display text-lg font-bold text-white">
+              <LogoMarkInverse className="h-7 w-7" />
               kiatri
             </div>
             <p className="mt-3 text-sm text-navy-300">

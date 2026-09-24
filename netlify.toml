@@ -2,6 +2,21 @@
   command = "npm run build"
   publish = "out"
 
+# /products and /small-business were consolidated into /pricing (single
+# canonical plan/pricing page) — see kiatri-consolidate-pages-prompt.md.
+# Each route also keeps a static fallback page (meta-refresh + a link) for
+# hosts without Netlify's redirect engine — see app/products/page.tsx and
+# app/small-business/page.tsx.
+[[redirects]]
+  from = "/products"
+  to = "/pricing"
+  status = 301
+
+[[redirects]]
+  from = "/small-business"
+  to = "/business#line"
+  status = 301
+
 [[headers]]
   for = "/*"
   [headers.values]

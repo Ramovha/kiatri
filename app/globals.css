@@ -2,9 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-}
+/* --font-sans and --font-display are supplied by next/font in app/layout.tsx
+   (Inter + Space Grotesk, self-hosted) — no manual @font-face/var needed here. */
 
 html {
   scroll-behavior: smooth;
@@ -13,4 +12,12 @@ html {
 body {
   background-color: #F7F8FA;
   color: #0B1B33;
+}
+
+/* Real typographic identity: headings get a distinct display face instead
+   of just being a heavier weight of the body font. Applied globally rather
+   than per-component so every h1-h3 sitewide picks it up automatically. */
+h1, h2, h3 {
+  font-family: var(--font-display);
+  letter-spacing: -0.015em;
 }

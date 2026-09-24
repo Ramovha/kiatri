@@ -1,26 +1,25 @@
 import Hero from '@/components/Hero';
-import TrustBar from '@/components/TrustBar';
 import CTAButton from '@/components/CTAButton';
-import { HandsetIcon, ServerRackIcon, HeadsetIcon } from '@/components/icons';
+import { HandsetIcon, ServerRackIcon, HeadsetIcon, HomeIcon } from '@/components/icons';
 
-const CATEGORIES = [
+const BUSINESS_CATEGORIES = [
   {
-    href: '/products',
+    href: '/business#voip',
     icon: HandsetIcon,
     title: 'Cloud PBX',
-    description: 'Seats, extensions, and a full PBX feature set with instant provisioning — from 5 to 25+ seats.',
+    description: 'Seats, extensions, and a full PBX feature set with instant provisioning — from 5 to 50+ seats.',
   },
   {
-    href: '/products#trunks',
+    href: '/business#trunks',
     icon: ServerRackIcon,
     title: 'SIP Trunks',
     description: 'Bulk calling capacity sized by channels and minutes, sold separately from seats so you only pay for what you need.',
   },
   {
-    href: '/products#call-center',
+    href: '/call-center',
     icon: HeadsetIcon,
     title: 'Call Center',
-    description: 'Queues, IVR, and call recording today, with wallboards and CRM-aware call pop on the roadmap.',
+    description: 'Queues, IVR, call recording, and more — bundled with your PBX as one flat-priced order.',
   },
 ];
 
@@ -28,7 +27,11 @@ export default function HomePage() {
   return (
     <>
       <Hero />
-      <TrustBar />
+      {/* TrustBar is intentionally not rendered — every stat in it is still
+          a [REPLACE WITH REAL DATA] placeholder, and showing that literal
+          text on a live page reads as broken. Re-enable (import + render
+          <TrustBar />) once real uptime/response-time/review/customer-count
+          figures exist — see components/TrustBar.tsx. */}
 
       <section className="py-20">
         <div className="mx-auto max-w-6xl px-6">
@@ -40,8 +43,9 @@ export default function HomePage() {
               device from the airtime. Mix and match what your business actually needs.
             </p>
           </div>
-          <div className="mt-10 grid gap-6 md:grid-cols-3">
-            {CATEGORIES.map(({ href, icon: Icon, title, description }) => (
+          <p className="mt-8 text-xs font-semibold uppercase tracking-wide text-navy-400">For Business</p>
+          <div className="mt-3 grid gap-6 md:grid-cols-3">
+            {BUSINESS_CATEGORIES.map(({ href, icon: Icon, title, description }) => (
               <a
                 key={title}
                 href={href}
@@ -58,6 +62,31 @@ export default function HomePage() {
               </a>
             ))}
           </div>
+
+          {/* Home Voice is a genuinely different product line (residential
+              tiers + app calling, not a business seat/trunk choice) — a
+              wider horizontal card instead of a 4th identical tile keeps
+              that distinction visible rather than implying it's just one
+              more option in the same set. */}
+          <p className="mt-10 text-xs font-semibold uppercase tracking-wide text-navy-400">For Home</p>
+          <a
+            href="/voice"
+            className="group mt-3 flex flex-col items-start gap-4 rounded-2xl border border-navy-900/10 bg-white p-6 shadow-card transition hover:border-ember-500/50 sm:flex-row sm:items-center"
+          >
+            <span className="flex h-11 w-11 flex-none items-center justify-center rounded-xl bg-navy-900 text-white">
+              <HomeIcon className="h-5 w-5" />
+            </span>
+            <div className="flex-1">
+              <h3 className="text-lg font-bold text-navy-900">Home Voice</h3>
+              <p className="mt-1 text-sm text-navy-700">
+                A home phone line or app-based calling — no business jargon, real local numbers, simple
+                pricing.
+              </p>
+            </div>
+            <span className="flex-none text-sm font-semibold text-ember-600 group-hover:text-ember-500">
+              Explore →
+            </span>
+          </a>
         </div>
       </section>
 
@@ -90,6 +119,12 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Social proof section intentionally not rendered — same reasoning as
+          TrustBar above: no real testimonials/logos/review scores exist yet,
+          and showing "[REPLACE WITH REAL DATA]" on a live page reads as
+          broken. To re-enable, replace the real content below and delete
+          the surrounding comment markers.
+
       <section className="py-20">
         <div className="mx-auto max-w-4xl px-6 text-center">
           <p className="text-sm font-semibold uppercase tracking-wide text-ember-600">Social proof</p>
@@ -100,6 +135,8 @@ export default function HomePage() {
           </p>
         </div>
       </section>
+
+      */}
 
       <section className="pb-24">
         <div className="mx-auto flex max-w-6xl flex-col items-center gap-6 rounded-3xl bg-navy-950 px-6 py-16 text-center text-white">
