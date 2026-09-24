@@ -34,7 +34,7 @@
  * are only ever attached to a plan (addons[ID]=on), never added on their own.
  */
 
-const ALLOWED_PID = [1, 4, 5, 8, 9, 10, 13, 17, 18, 26, 27, 28];
+const ALLOWED_PID = [1, 4, 5, 8, 9, 10, 17, 18, 26, 27, 28];
 const ALLOWED_ADDON = [4, 5, 6];
 const ALLOWED_BID = [1, 2, 3, 4, 5, 6];
 
@@ -174,30 +174,52 @@ $payload = json_encode(
     return fetch(url, { credentials: 'same-origin', redirect: 'follow', cache: 'no-store' });
   }
 
-  // Attaches addons to a bundle's PBX product that is already in the cart, by
-  // submitting that cart item's configure form. Throws (so the visitor is
-  // shown the problem screen, never a silently addon-less order) if the item,
-  // the addon or the result can't be confirmed.
-  async function attach(entry) {
-    var view = await (await get('/cart.php?a=view')).text();
-    var doc = new DOMParser().parseFromString(view, 'text/html');
-    var index = null;
-    // Each cart line's title element holds the product name as its own text,
-    // followed by its Edit / Remove controls.
+  function emptyCart() {
+    return fetch('/cart.php?a=empty', { credentials: 'same-origin', redirect: 'manual', cache: 'no-store' });
+  }
+
+  // Speed: the cart page is the slow part of every step (a large page the
+  // billing system has to build), so this script asks for it as few times as
+  // possible. The cart is emptied without loading it, the items' own responses
+  // are reused instead of fetching the cart again, the addon form is sent
+  // once, and the visitor's browser makes the LAST add itself so the cart
+  // page they land on is the only one that is built.
+  function firstText(el) {
+    return el.firstChild ? el.firstChild.textContent.trim() : '';
+  }
+
+  // The cart line titled `name`, as { index, group }. Each title element holds
+  // the name as its own text, then Edit / Remove controls.
+  function cartLines(html) {
+    var doc = new DOMParser().parseFromString(html, 'text/html');
+    var lines = [];
     doc.querySelectorAll('.item-title').forEach(function (title) {
       var link = title.querySelector('a[href*="a=confproduct"]');
       var match = link && link.getAttribute('href').match(/[?&]i=(\d+)/);
-      var name = title.firstChild ? title.firstChild.textContent.trim() : '';
-      if (match && name === entry.title) index = match[1]; // the latest one
+      var group = title.parentNode && title.parentNode.querySelector('.item-group');
+      lines.push({ name: firstText(title), index: match ? match[1] : null, group: group ? group.textContent.trim() : '' });
+    });
+    return lines;
+  }
+
+  // Attaches addons to a bundle's PBX product that is already in the cart, by
+  // submitting that cart item's configure form. `html` is the latest cart page.
+  // Returns the cart page as it is afterwards. Throws (so the visitor sees the
+  // problem screen, never a silently addon-less order) if the item is missing
+  // or the addons are not on the cart afterwards.
+  async function attach(entry, html) {
+    var index = null;
+    cartLines(html).forEach(function (line) {
+      if (line.index !== null && line.name === entry.title) index = line.index; // the latest one
     });
     if (index === null) throw new Error('find');
 
-    var conf = await (await get('/cart.php?a=confproduct&i=' + index)).text();
-    var token = (conf.match(/name="token"\s+value="([^"]+)"/) || [])[1];
+    var token = (html.match(/name="token"\s+value="([^"]+)"/) || [])[1];
+    if (!token) {
+      var conf = await (await get('/cart.php?a=confproduct&i=' + index)).text();
+      token = (conf.match(/name="token"\s+value="([^"]+)"/) || [])[1];
+    }
     if (!token) throw new Error('token');
-    entry.addons.forEach(function (id) {
-      if (conf.indexOf('name="addons[' + id + ']"') === -1) throw new Error('addon not offered');
-    });
 
     var body = new URLSearchParams();
     body.set('token', token);
@@ -213,16 +235,19 @@ $payload = json_encode(
     });
     if (!res.ok) throw new Error('attach');
 
-    var after = await (await get('/cart.php?a=view')).text();
+    // The response is the cart page after the form was saved: confirm each addon.
+    var after = await res.text();
+    var lines = cartLines(after);
     entry.addons.forEach(function (id) {
-      if (after.indexOf(cfg.names[id]) === -1) throw new Error('not attached');
+      var found = lines.some(function (line) { return line.name === cfg.names[id] && line.group === 'Addon'; });
+      if (!found) throw new Error('not attached');
     });
+    return after;
   }
 
   async function run() {
     if (!cfg.urls.length) { location.replace(CART); return; }
 
-    var configUrl = null;
     var recent = null;
     try { recent = JSON.parse(sessionStorage.getItem(STORE) || 'null'); } catch (e) {}
 
@@ -232,23 +257,51 @@ $payload = json_encode(
       return;
     }
 
-    // Start from a clean cart so every item appears exactly once.
-    var cleared = await get('/cart.php?a=empty');
-    if (!cleared.ok) throw new Error('empty');
+    // Start from a clean cart so every item appears exactly once. The cart is
+    // emptied by the first request; there is no need to load the page it
+    // redirects to.
+    // Emptying is safe to repeat, so one dropped connection is retried.
+    var cleared;
+    try {
+      cleared = await emptyCart();
+    } catch (e) {
+      cleared = await emptyCart();
+    }
+    if (!(cleared.type === 'opaqueredirect' || cleared.ok)) throw new Error('empty');
 
-    // One at a time: the adds share one cart session.
-    for (var i = 0; i < cfg.urls.length; i++) {
+    // One at a time: the adds share one cart session. With addons to attach we
+    // need every item in the cart first, so all adds are fetched; otherwise the
+    // last add is made by the visitor's own browser (below).
+    var needsAttach = cfg.attach.length > 0;
+    var configUrl = null;
+    var html = '';
+    var fetchCount = needsAttach ? cfg.urls.length : cfg.urls.length - 1;
+    for (var i = 0; i < fetchCount; i++) {
       var res = await get(cfg.urls[i]);
       if (!res.ok) throw new Error('add');
       // A finished add ends on the cart. Anything else is a configure step
       // (required fields) — remember the first one and send the visitor there.
       if (!configUrl && res.url.indexOf('a=view') === -1) configUrl = res.url;
+      if (needsAttach && i === fetchCount - 1) html = await res.text();
     }
 
-    for (var j = 0; j < cfg.attach.length; j++) await attach(cfg.attach[j]);
+    if (needsAttach) {
+      for (var j = 0; j < cfg.attach.length; j++) html = await attach(cfg.attach[j], html);
+    }
 
     try { sessionStorage.setItem(STORE, JSON.stringify({ at: Date.now(), configUrl: configUrl })); } catch (e) {}
-    location.replace(configUrl || CART);
+
+    if (needsAttach) { location.replace(configUrl || CART); return; }
+    if (configUrl) {
+      // An earlier item needs its configure step: add the last one too, then go there.
+      var lastRes = await get(cfg.urls[cfg.urls.length - 1]);
+      if (!lastRes.ok) throw new Error('add');
+      location.replace(configUrl);
+      return;
+    }
+    // Nothing needs configuring: the browser makes the last add itself and
+    // lands wherever billing sends it (the Review page, or a configure step).
+    location.replace(cfg.urls[cfg.urls.length - 1]);
   }
 
   run().catch(fail);

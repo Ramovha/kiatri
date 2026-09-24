@@ -613,11 +613,14 @@ export const addons: Addon[] = [
       'Send documents through a self-service virtual fax panel',
       'Email notifications for received faxes',
       'No physical fax machine or line required',
-      'Available as a standalone add-on to any plan, or on its own for fax-only needs',
+      'Switch it on for a Business Line or a SIP trunk',
     ],
     status: 'available',
     pricingStatus: 'illustrative-pending-costing',
-    whmcsPid: 13,
+    // The standalone product (pid 13) is no longer sold in billing, so there is no
+    // order link and the "Only need fax?" card is not shown. Restore whmcsPid: 13
+    // if it comes back.
+    
   },
 ];
 

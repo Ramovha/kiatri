@@ -3,7 +3,7 @@ import PromoBanner from '@/components/PromoBanner';
 import PlanCategoryTabs, { PlanCategory } from '@/components/PlanCategoryTabs';
 import FeatureTabs, { FeatureTab } from '@/components/FeatureTabs';
 import BusinessAccountsBlock from '@/components/BusinessAccountsBlock';
-import FaxOnlyCard from '@/components/FaxOnlyCard';
+import { faxOnlyCardIfAvailable } from '@/components/FaxOnlyCard';
 import ExistingCustomerLine from '@/components/ExistingCustomerLine';
 import PlanComparison from '@/components/PlanComparison';
 import { BrowserFrame, AppShot } from '@/components/voice/Frames';
@@ -43,7 +43,7 @@ const PLAN_CATEGORIES: PlanCategory[] = [
     description: 'A single business phone line — no PBX needed. Pick your bundled minutes.',
     plans: linePlans,
     visualizerPlan: popularLine,
-    footer: <FaxOnlyCard />,
+    footer: faxOnlyCardIfAvailable(),
   },
   {
     id: 'trunks',
