@@ -11,7 +11,8 @@ function cycleParam(billingCycle: BillingCycle): string {
 }
 
 // One-click cart page on the billing site (source: whmcs/kiatri-cart.php).
-// Accepts every selected item in one link, adds them all, then opens checkout.
+// Accepts every selected item in one link, adds them all, then opens the
+// Review & Checkout page (/cart.php?a=view).
 export const KIATRI_CART_URL = 'https://calling.kiatri.com/kiatri-cart.php';
 
 // Direct add link for a single product. skipconfig=1 sends the customer
@@ -68,7 +69,7 @@ export function cartItemToken(item: OrderableLike | CartItem): string | null {
 
 // One link for everything selected. Returns null when nothing can be ordered
 // or ANY selected item has no order link yet, so a partial order is never
-// sent to checkout.
+// sent on to be reviewed.
 export function orderCartUrl(items: (OrderableLike | CartItem)[], billingCycle: BillingCycle = 'monthly'): string | null {
   if (items.length === 0) return null;
   const tokens = items.map(cartItemToken);
