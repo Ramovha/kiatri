@@ -147,7 +147,7 @@ export default function PlanBuilder() {
   );
 
   // One link carries everything selected: the plan with its addons attached,
-  // and any calling capacity. Checkout opens with each item in the cart once.
+  // and any calling capacity. The order review page opens with each item in the cart once.
   const cartUrl = buildOrderLink(base, family, selectedIds, trunkAddOn ? [trunkAddOn] : []);
 
   // Which plan the address should point at.
