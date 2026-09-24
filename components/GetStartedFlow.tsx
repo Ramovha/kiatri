@@ -359,7 +359,7 @@ export default function GetStartedFlow() {
                 : 'Someone from our team will reach out soon.'}
             </p>
             <Link href="/" className="mt-6 inline-block text-sm font-semibold text-ember-600 hover:text-ember-500">
-              Back to kiatri.co.za
+              Back to kiatri.com
             </Link>
           </div>
         )}
